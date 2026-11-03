@@ -1,19 +1,19 @@
 use crate::error::{validate_non_empty, Error};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
 pub enum PortKind {
     Execution,
     Data,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
 pub enum PortDirection {
     Input,
     Output,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
 pub enum DataType {
     Bool,
     Int,
@@ -36,6 +36,13 @@ impl Port {
         direction: PortDirection,
         data_type: Option<DataType>,
     ) -> Result<Self, Error> {
+        match (&kind, &data_type) {
+            (PortKind::Execution, Some(_)) | (PortKind::Data, None) => {
+                return Err(Error::InvalidPortDataType);
+            }
+            _ => {}
+        }
+
         Ok(Self {
             id: PortId::new(id)?,
             kind,

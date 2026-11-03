@@ -189,8 +189,20 @@ fn duplicate_port_id_is_rejected_without_changing_node() {
 fn nodes_can_have_same_port_id() {
     let mut first = Node::new("input", position(0.0, 0.0)).unwrap();
     let mut second = Node::new("output", position(1.0, 1.0)).unwrap();
-    let first_port = Port::new("value", PortKind::Data, PortDirection::Input, None).unwrap();
-    let second_port = Port::new("value", PortKind::Data, PortDirection::Output, None).unwrap();
+    let first_port = Port::new(
+        "value",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Float),
+    )
+    .unwrap();
+    let second_port = Port::new(
+        "value",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    )
+    .unwrap();
 
     first.add_port(first_port).unwrap();
     second.add_port(second_port).unwrap();
@@ -206,9 +218,313 @@ fn ports_cannot_be_changed_after_node_is_added_to_graph() {
     let node_id = node.id();
     graph.add_node(node).unwrap();
 
-    let port = Port::new("value", PortKind::Data, PortDirection::Input, None).unwrap();
+    let port = Port::new(
+        "value",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Float),
+    )
+    .unwrap();
     let result = graph.get_node_mut(node_id).unwrap().add_port(port);
 
     assert!(matches!(result, Err(Error::PortsLocked)));
     assert_eq!(graph.get_node(node_id).unwrap().port_count(), 0);
+}
+
+fn node_with_port(
+    node_type: &str,
+    port_id: &str,
+    kind: PortKind,
+    direction: PortDirection,
+    data_type: Option<DataType>,
+) -> Node {
+    let mut node = Node::new(node_type, position(0.0, 0.0)).unwrap();
+    node.add_port(Port::new(port_id, kind, direction, data_type).unwrap())
+        .unwrap();
+    node
+}
+
+#[test]
+fn connect_creates_connection_and_can_be_queried() {
+    let mut graph = Graph::new("Main graph").unwrap();
+    let source = node_with_port(
+        "source",
+        "out",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    );
+    let target = node_with_port(
+        "target",
+        "in",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Float),
+    );
+    let source_id = source.id();
+    let target_id = target.id();
+    graph.add_node(source).unwrap();
+    graph.add_node(target).unwrap();
+
+    let connection_id = graph
+        .connect(source_id, "out", target_id, "in")
+        .unwrap();
+    let connection = graph.get_connection(connection_id).unwrap();
+
+    assert_eq!(graph.connection_count(), 1);
+    assert_eq!(connection.from_node(), source_id);
+    assert_eq!(connection.from_port(), "out");
+    assert_eq!(connection.to_node(), target_id);
+    assert_eq!(connection.to_port(), "in");
+}
+
+#[test]
+fn connect_rejects_missing_nodes_and_ports_without_mutation() {
+    let mut graph = Graph::new("Main graph").unwrap();
+    let source = node_with_port(
+        "source",
+        "out",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    );
+    let source_id = source.id();
+    let missing_id = Uuid::new_v4();
+    graph.add_node(source).unwrap();
+
+    assert!(matches!(
+        graph.connect(missing_id, "out", source_id, "out"),
+        Err(Error::NodeNotFound(id)) if id == missing_id
+    ));
+    assert!(matches!(
+        graph.connect(source_id, "missing", source_id, "out"),
+        Err(Error::PortNotFound { node_id, port_id })
+            if node_id == source_id && port_id == "missing"
+    ));
+    assert_eq!(graph.connection_count(), 0);
+}
+
+#[test]
+fn connect_rejects_invalid_direction_kind_and_data_type() {
+    let mut graph = Graph::new("Main graph").unwrap();
+    let source = node_with_port(
+        "source",
+        "out",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Float),
+    );
+    let target = node_with_port(
+        "target",
+        "in",
+        PortKind::Execution,
+        PortDirection::Output,
+        None,
+    );
+    let source_id = source.id();
+    let target_id = target.id();
+    graph.add_node(source).unwrap();
+    graph.add_node(target).unwrap();
+
+    assert!(matches!(
+        graph.connect(source_id, "out", target_id, "in"),
+        Err(Error::InvalidPortDirection)
+    ));
+    assert_eq!(graph.connection_count(), 0);
+
+    let mut graph = Graph::new("Main graph").unwrap();
+    let source = node_with_port(
+        "source",
+        "out",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    );
+    let target = node_with_port(
+        "target",
+        "in",
+        PortKind::Execution,
+        PortDirection::Input,
+        None,
+    );
+    let source_id = source.id();
+    let target_id = target.id();
+    graph.add_node(source).unwrap();
+    graph.add_node(target).unwrap();
+    assert!(matches!(
+        graph.connect(source_id, "out", target_id, "in"),
+        Err(Error::PortKindMismatch)
+    ));
+
+    let mut graph = Graph::new("Main graph").unwrap();
+    let source = node_with_port(
+        "source",
+        "out",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    );
+    let target = node_with_port(
+        "target",
+        "in",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Int),
+    );
+    let source_id = source.id();
+    let target_id = target.id();
+    graph.add_node(source).unwrap();
+    graph.add_node(target).unwrap();
+    assert!(matches!(
+        graph.connect(source_id, "out", target_id, "in"),
+        Err(Error::DataTypeMismatch)
+    ));
+    assert_eq!(graph.connection_count(), 0);
+}
+
+#[test]
+fn connect_rejects_self_duplicate_and_occupied_ports() {
+    let mut graph = Graph::new("Main graph").unwrap();
+    let node = node_with_port(
+        "node",
+        "out",
+        PortKind::Execution,
+        PortDirection::Output,
+        None,
+    );
+    let node_id = node.id();
+    graph.add_node(node).unwrap();
+    assert!(matches!(
+        graph.connect(node_id, "out", node_id, "out"),
+        Err(Error::InvalidPortDirection)
+    ));
+
+    let mut graph = Graph::new("Main graph").unwrap();
+    let source = node_with_port(
+        "source",
+        "out",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    );
+    let target = node_with_port(
+        "target",
+        "in",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Float),
+    );
+    let source_id = source.id();
+    let target_id = target.id();
+    graph.add_node(source).unwrap();
+    graph.add_node(target).unwrap();
+    let connection_id = graph
+        .connect(source_id, "out", target_id, "in")
+        .unwrap();
+    assert!(matches!(
+        graph.connect(source_id, "out", target_id, "in"),
+        Err(Error::DuplicateConnection)
+    ));
+    assert_eq!(graph.connection_count(), 1);
+
+    let other_source = node_with_port(
+        "other",
+        "out",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    );
+    let other_source_id = other_source.id();
+    graph.add_node(other_source).unwrap();
+    assert!(matches!(
+        graph.connect(other_source_id, "out", target_id, "in"),
+        Err(Error::InputPortAlreadyConnected)
+    ));
+
+    let execution_target = node_with_port(
+        "execution-target",
+        "in",
+        PortKind::Execution,
+        PortDirection::Input,
+        None,
+    );
+    let execution_target_id = execution_target.id();
+    graph.add_node(execution_target).unwrap();
+    let execution_source = node_with_port(
+        "execution-source",
+        "out",
+        PortKind::Execution,
+        PortDirection::Output,
+        None,
+    );
+    let execution_source_id = execution_source.id();
+    graph.add_node(execution_source).unwrap();
+    graph
+        .connect(
+            execution_source_id,
+            "out",
+            execution_target_id,
+            "in",
+        )
+        .unwrap();
+    let another_target = node_with_port(
+        "another-target",
+        "in",
+        PortKind::Execution,
+        PortDirection::Input,
+        None,
+    );
+    let another_target_id = another_target.id();
+    graph.add_node(another_target).unwrap();
+    assert!(matches!(
+        graph.connect(
+            execution_source_id,
+            "out",
+            another_target_id,
+            "in"
+        ),
+        Err(Error::ExecutionOutputAlreadyConnected)
+    ));
+    assert_eq!(graph.get_connection(connection_id).unwrap().id(), connection_id);
+}
+
+#[test]
+fn disconnect_and_remove_node_clean_up_connections() {
+    let mut graph = Graph::new("Main graph").unwrap();
+    let source = node_with_port(
+        "source",
+        "out",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    );
+    let target = node_with_port(
+        "target",
+        "in",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Float),
+    );
+    let source_id = source.id();
+    let target_id = target.id();
+    graph.add_node(source).unwrap();
+    graph.add_node(target).unwrap();
+    let connection_id = graph
+        .connect(source_id, "out", target_id, "in")
+        .unwrap();
+    assert_eq!(graph.get_node_connections(source_id).count(), 1);
+    assert_eq!(graph.get_node_connections(target_id).count(), 1);
+
+    assert!(graph.disconnect(Uuid::new_v4()).is_none());
+    assert!(graph.disconnect(connection_id).is_some());
+    assert_eq!(graph.connection_count(), 0);
+
+    let connection_id = graph
+        .connect(source_id, "out", target_id, "in")
+        .unwrap();
+    assert!(graph.remove_node(source_id).is_some());
+    assert_eq!(graph.connection_count(), 0);
+    assert!(graph.get_connection(connection_id).is_none());
+    assert!(graph.get_node(source_id).is_none());
+    assert!(graph.remove_node(source_id).is_none());
 }
