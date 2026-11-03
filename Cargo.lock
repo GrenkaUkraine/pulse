@@ -103,6 +103,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pulse-nodes"
+version = "0.1.0"
+dependencies = [
+ "pulse-core",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"

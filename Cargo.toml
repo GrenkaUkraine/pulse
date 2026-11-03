@@ -2,7 +2,7 @@
 resolver = "3"
 
 members = [
-    "crates/pulse-core",
+    "crates/pulse-core", "crates/pulse-nodes",
 ]
 
 [workspace.package]
