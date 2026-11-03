@@ -22,7 +22,7 @@ pub enum DataType {
     String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Port {
     id: NonEmptyString,
     kind: PortKind,
@@ -66,5 +66,25 @@ impl Port {
 
     pub fn data_type(&self) -> Option<&DataType> {
         self.data_type.as_ref()
+    }
+}
+
+impl<'de> Deserialize<'de> for Port {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error as _;
+
+        #[derive(Deserialize)]
+        struct PortData {
+            id: String,
+            kind: PortKind,
+            direction: PortDirection,
+            data_type: Option<DataType>,
+        }
+
+        let port = PortData::deserialize(deserializer)?;
+        Self::new(port.id, port.kind, port.direction, port.data_type).map_err(D::Error::custom)
     }
 }

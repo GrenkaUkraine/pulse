@@ -10,6 +10,7 @@ pub struct Node {
     id: Uuid,
     node_type: NonEmptyString,
     position: NodePosition,
+    #[serde(deserialize_with = "deserialize_ports")]
     ports: HashMap<String, Port>,
     #[serde(skip)]
     ports_locked: bool,
@@ -76,4 +77,18 @@ impl Node {
 pub struct NodePosition {
     pub x: f32,
     pub y: f32,
+}
+
+fn deserialize_ports<'de, D>(deserializer: D) -> Result<HashMap<String, Port>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Error as _;
+
+    let ports = HashMap::<String, Port>::deserialize(deserializer)?;
+    if ports.iter().any(|(id, port)| id != port.id()) {
+        return Err(D::Error::custom("port key must match its ID"));
+    }
+
+    Ok(ports)
 }

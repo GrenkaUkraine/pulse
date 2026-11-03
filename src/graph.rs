@@ -78,6 +78,20 @@ impl Graph {
         to_node: Uuid,
         to_port: &str,
     ) -> Result<Uuid, Error> {
+        self.validate_connection(from_node, from_port, to_node, to_port)?;
+        let connection = Connection::new(from_node, from_port, to_node, to_port);
+        let connection_id = connection.id();
+        self.connections.insert(connection_id, connection);
+        Ok(connection_id)
+    }
+
+    fn validate_connection(
+        &self,
+        from_node: Uuid,
+        from_port: &str,
+        to_node: Uuid,
+        to_port: &str,
+    ) -> Result<(), Error> {
         let source_node = self.nodes.get(&from_node).ok_or(Error::NodeNotFound(from_node))?;
         let target_node = self.nodes.get(&to_node).ok_or(Error::NodeNotFound(to_node))?;
         let source_port = source_node
@@ -130,10 +144,7 @@ impl Graph {
             return Err(Error::ExecutionOutputAlreadyConnected);
         }
 
-        let connection = Connection::new(from_node, from_port, to_node, to_port);
-        let connection_id = connection.id();
-        self.connections.insert(connection_id, connection);
-        Ok(connection_id)
+        Ok(())
     }
 
     pub fn disconnect(&mut self, connection_id: Uuid) -> Option<Connection> {
@@ -175,15 +186,37 @@ impl<'de> Deserialize<'de> for Graph {
             connections,
         } = GraphData::deserialize(deserializer)?;
 
-        for node in nodes.values_mut() {
+        use serde::de::Error as _;
+
+        for (node_id, node) in &mut nodes {
+            if *node_id != node.id() {
+                return Err(D::Error::custom("node key must match its ID"));
+            }
             node.lock_ports();
         }
 
-        Ok(Self {
+        let mut graph = Self {
             id,
             name,
             nodes,
-            connections,
-        })
+            connections: HashMap::with_capacity(connections.len()),
+        };
+
+        for (connection_id, connection) in connections {
+            if connection_id != connection.id() {
+                return Err(D::Error::custom("connection key must match its ID"));
+            }
+            graph
+                .validate_connection(
+                    connection.from_node(),
+                    connection.from_port(),
+                    connection.to_node(),
+                    connection.to_port(),
+                )
+                .map_err(D::Error::custom)?;
+            graph.connections.insert(connection_id, connection);
+        }
+
+        Ok(graph)
     }
 }
