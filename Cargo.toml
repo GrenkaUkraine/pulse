@@ -3,6 +3,7 @@ resolver = "3"
 
 members = [
     "crates/pulse-core", "crates/pulse-nodes",
+    "apps/pulse-ide/src-tauri",
 ]
 
 [workspace.package]
