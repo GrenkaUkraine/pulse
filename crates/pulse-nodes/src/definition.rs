@@ -14,9 +14,32 @@ pub struct PortDefinition {
 
 #[derive(Debug)]
 pub struct NodeDefinition {
+    pub category: NodeCategory,
     pub id: &'static str,
     pub display_name: &'static str,
     pub ports: Vec<PortDefinition>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum NodeCategory {
+    Flow,
+    Values,
+}
+
+impl NodeCategory {
+    pub fn id(self) -> &'static str {
+        match self {
+            Self::Flow => "flow",
+            Self::Values => "values",
+        }
+    }
+
+    pub fn display_name(self) -> &'static str {
+        match self {
+            Self::Flow => "Управление",
+            Self::Values => "Значения",
+        }
+    }
 }
 
 impl NodeDefinition {

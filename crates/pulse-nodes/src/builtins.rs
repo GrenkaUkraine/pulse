@@ -1,25 +1,54 @@
-use crate::definition::{NodeDefinition, PortDefinition};
+use crate::definition::{NodeCategory, NodeDefinition, PortDefinition};
 use pulse_core::port::{DataType, PortDirection, PortKind};
 
-pub(crate) fn start() -> NodeDefinition {
+pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
+    let factories: [fn() -> NodeDefinition; 4] = [
+        // Flow
+        start,
+        branch,
+        // Values
+        bool_constant,
+        int_constant,
+    ];
+    factories.into_iter().map(|factory| factory())
+}
+
+fn start() -> NodeDefinition {
     NodeDefinition {
         id: "flow.start",
+        category: NodeCategory::Flow,
         display_name: "Start",
         ports: vec![execution_port("out", PortDirection::Output)],
     }
 }
 
-pub(crate) fn bool_constant() -> NodeDefinition {
+fn bool_constant() -> NodeDefinition {
     NodeDefinition {
         id: "value.bool",
+        category: NodeCategory::Values,
         display_name: "Bool Constant",
         ports: vec![bool_port("value", PortDirection::Output)],
     }
 }
 
-pub(crate) fn branch() -> NodeDefinition {
+fn int_constant() -> NodeDefinition {
+    NodeDefinition {
+        id: "value.int",
+        display_name: "Int Constant",
+        category: NodeCategory::Values,
+        ports: vec![PortDefinition {
+            id: "value",
+            kind: PortKind::Data,
+            direction: PortDirection::Output,
+            data_type: Some(DataType::Int),
+        }],
+    }
+}
+
+fn branch() -> NodeDefinition {
     NodeDefinition {
         id: "flow.branch",
+        category: NodeCategory::Flow,
         display_name: "Branch",
         ports: vec![
             execution_port("in", PortDirection::Input),

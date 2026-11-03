@@ -10,7 +10,10 @@ fn lists_and_finds_builtin_nodes() {
     let ids: Vec<_> = catalog::definitions()
         .map(|definition| definition.id)
         .collect();
-    assert_eq!(ids, ["flow.start", "value.bool", "flow.branch"]);
+    assert_eq!(
+        ids,
+        ["flow.start", "flow.branch", "value.bool", "value.int"]
+    );
     for id in ids {
         assert_eq!(catalog::find(id).unwrap().id, id);
     }
@@ -54,4 +57,27 @@ fn connects_builtin_nodes_in_a_graph() {
         .connect(constant_id, "value", branch_id, "condition")
         .unwrap();
     assert_eq!(graph.connection_count(), 2);
+}
+
+#[test]
+fn exposes_categories_and_creates_an_integer_constant() {
+    use pulse_core::port::{DataType, PortDirection, PortKind};
+    use pulse_nodes::definition::NodeCategory;
+
+    let branch = catalog::find("flow.branch").unwrap();
+    assert_eq!(branch.category, NodeCategory::Flow);
+    assert_eq!(branch.category.id(), "flow");
+    assert_eq!(branch.category.display_name(), "Управление");
+
+    let definition = catalog::find("value.int").unwrap();
+    assert_eq!(definition.category, NodeCategory::Values);
+    assert_eq!(definition.category.id(), "values");
+    assert_eq!(definition.category.display_name(), "Значения");
+
+    let node = catalog::create("value.int", position()).unwrap();
+    assert_eq!(node.port_count(), 1);
+    let port = node.get_port("value").unwrap();
+    assert_eq!(port.kind(), &PortKind::Data);
+    assert_eq!(port.direction(), &PortDirection::Output);
+    assert_eq!(port.data_type(), Some(&DataType::Int));
 }

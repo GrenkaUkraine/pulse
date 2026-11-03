@@ -30,9 +30,7 @@ impl std::error::Error for CatalogError {
 }
 
 pub fn definitions() -> impl Iterator<Item = NodeDefinition> {
-    let factories: [fn() -> NodeDefinition; 3] =
-        [builtins::start, builtins::bool_constant, builtins::branch];
-    factories.into_iter().map(|factory| factory())
+    builtins::definitions()
 }
 
 pub fn find(id: &str) -> Option<NodeDefinition> {
