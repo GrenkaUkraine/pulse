@@ -67,7 +67,7 @@ pub struct PortId(String);
 
 impl PortId {
     pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        validate_non_empty(value.into(), Error::EmptyGraphName).map(Self)
+        validate_non_empty(value.into(), Error::EmptyPortId).map(Self)
     }
 
     pub fn as_str(&self) -> &str {

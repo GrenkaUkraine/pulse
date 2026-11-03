@@ -2,6 +2,7 @@ use pulse_core::{
     error::Error,
     graph::Graph,
     node::{Node, NodePosition},
+    port::{DataType, Port, PortDirection, PortKind},
 };
 use serde_json::Value;
 use uuid::Uuid;
@@ -156,4 +157,58 @@ fn graph_json_round_trip_preserves_nodes() {
     let original_json: Value = serde_json::from_str(&json).unwrap();
     let restored_json = serde_json::to_value(restored).unwrap();
     assert_eq!(original_json, restored_json);
+}
+
+#[test]
+fn duplicate_port_id_is_rejected_without_changing_node() {
+    let mut node = Node::new("input", position(0.0, 0.0)).unwrap();
+    let first = Port::new(
+        "value",
+        PortKind::Data,
+        PortDirection::Input,
+        Some(DataType::Float),
+    )
+    .unwrap();
+    let duplicate = Port::new(
+        "value",
+        PortKind::Data,
+        PortDirection::Output,
+        Some(DataType::Float),
+    )
+    .unwrap();
+
+    node.add_port(first).unwrap();
+    assert!(matches!(
+        node.add_port(duplicate),
+        Err(Error::DuplicatePortId)
+    ));
+    assert_eq!(node.port_count(), 1);
+}
+
+#[test]
+fn nodes_can_have_same_port_id() {
+    let mut first = Node::new("input", position(0.0, 0.0)).unwrap();
+    let mut second = Node::new("output", position(1.0, 1.0)).unwrap();
+    let first_port = Port::new("value", PortKind::Data, PortDirection::Input, None).unwrap();
+    let second_port = Port::new("value", PortKind::Data, PortDirection::Output, None).unwrap();
+
+    first.add_port(first_port).unwrap();
+    second.add_port(second_port).unwrap();
+
+    assert_eq!(first.port_count(), 1);
+    assert_eq!(second.port_count(), 1);
+}
+
+#[test]
+fn ports_cannot_be_changed_after_node_is_added_to_graph() {
+    let mut graph = Graph::new("Main graph").unwrap();
+    let node = Node::new("input", position(0.0, 0.0)).unwrap();
+    let node_id = node.id();
+    graph.add_node(node).unwrap();
+
+    let port = Port::new("value", PortKind::Data, PortDirection::Input, None).unwrap();
+    let result = graph.get_node_mut(node_id).unwrap().add_port(port);
+
+    assert!(matches!(result, Err(Error::PortsLocked)));
+    assert_eq!(graph.get_node(node_id).unwrap().port_count(), 0);
 }

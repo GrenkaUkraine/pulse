@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Graph {
     id: Uuid,
     name: GraphName,
@@ -27,7 +27,10 @@ impl Graph {
             return Err(Error::DuplicateNodeId);
         }
 
-        self.nodes.insert(node.id(), node);
+        let node_id = node.id();
+        let mut node = node;
+        node.lock_ports();
+        self.nodes.insert(node_id, node);
         Ok(())
     }
 
@@ -49,6 +52,32 @@ impl Graph {
 
     pub fn count_nodes(&self) -> usize {
         self.nodes.len()
+    }
+}
+
+impl<'de> Deserialize<'de> for Graph {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct GraphData {
+            id: Uuid,
+            name: GraphName,
+            nodes: HashMap<Uuid, Node>,
+        }
+
+        let GraphData {
+            id,
+            name,
+            mut nodes,
+        } = GraphData::deserialize(deserializer)?;
+
+        for node in nodes.values_mut() {
+            node.lock_ports();
+        }
+
+        Ok(Self { id, name, nodes })
     }
 }
 
