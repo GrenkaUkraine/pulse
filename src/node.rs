@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::{validate_non_empty, Error};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -30,12 +30,7 @@ pub struct NodeType(String);
 
 impl NodeType {
     pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        let value = value.into();
-        if value.trim().is_empty() {
-            return Err(Error::EmptyNodeType);
-        }
-
-        Ok(Self(value))
+        validate_non_empty(value.into(), Error::EmptyNodeType).map(Self)
     }
 
     pub fn as_str(&self) -> &str {
