@@ -23,11 +23,11 @@ impl Graph {
     }
 
     pub fn add_node(&mut self, node: Node) -> Result<(), Error> {
-        if self.nodes.contains_key(&node.id) {
+        if self.nodes.contains_key(&node.id()) {
             return Err(Error::DuplicateNodeId);
         }
 
-        self.nodes.insert(node.id, node);
+        self.nodes.insert(node.id(), node);
         Ok(())
     }
 

@@ -5,9 +5,9 @@ use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Node {
-    pub id: Uuid,
-    pub node_type: NodeType,
-    pub position: NodePosition,
+    id: Uuid,
+    node_type: NodeType,
+    position: NodePosition,
 }
 
 impl Node {
@@ -21,6 +21,18 @@ impl Node {
 
     pub fn set_position(&mut self, position: NodePosition) {
         self.position = position;
+    }
+
+    pub fn id(&self) -> Uuid {
+        self.id
+    }
+
+    pub fn node_type(&self) -> &str {
+        self.node_type.as_str()
+    }
+    
+    pub fn position(&self) -> &NodePosition {
+        &self.position
     }
 }
 

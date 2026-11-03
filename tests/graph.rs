@@ -1,7 +1,7 @@
 use pulse_core::{
     error::Error,
     graph::Graph,
-    node::{Node, NodePosition, NodeType},
+    node::{Node, NodePosition},
 };
 use serde_json::Value;
 use uuid::Uuid;
@@ -14,9 +14,9 @@ fn position(x: f32, y: f32) -> NodePosition {
 fn node_creation_generates_uuid_and_preserves_values() {
     let node = Node::new("input", position(10.0, 20.0)).unwrap();
 
-    assert_ne!(node.id, Uuid::nil());
-    assert_eq!(node.node_type.as_str(), "input");
-    assert_eq!(node.position, position(10.0, 20.0));
+    assert_ne!(node.id(), Uuid::nil());
+    assert_eq!(node.node_type(), "input");
+    assert_eq!(node.position(), &position(10.0, 20.0));
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn created_nodes_have_unique_uuids() {
     let first = Node::new("input", position(0.0, 0.0)).unwrap();
     let second = Node::new("output", position(1.0, 1.0)).unwrap();
 
-    assert_ne!(first.id, second.id);
+    assert_ne!(first.id(), second.id());
 }
 
 #[test]
@@ -45,7 +45,7 @@ fn set_position_changes_node_coordinates() {
 
     node.set_position(position(5.0, -3.0));
 
-    assert_eq!(node.position, position(5.0, -3.0));
+    assert_eq!(node.position(), &position(5.0, -3.0));
 }
 
 #[test]
@@ -69,12 +69,11 @@ fn adding_node_increases_node_count() {
 fn duplicate_node_uuid_is_rejected_without_changing_graph() {
     let mut graph = Graph::new("Main graph").unwrap();
     let node = Node::new("input", position(0.0, 0.0)).unwrap();
-    let node_id = node.id;
-    let duplicate = Node {
-        id: node_id,
-        node_type: NodeType::new("output").unwrap(),
-        position: position(10.0, 10.0),
-    };
+    let node_id = node.id();
+    let mut duplicate_json = serde_json::to_value(&node).unwrap();
+    duplicate_json["node_type"] = Value::String("output".to_owned());
+    duplicate_json["position"] = serde_json::json!({ "x": 10.0, "y": 10.0 });
+    let duplicate: Node = serde_json::from_value(duplicate_json).unwrap();
 
     graph.add_node(node).unwrap();
     assert!(matches!(
@@ -82,27 +81,27 @@ fn duplicate_node_uuid_is_rejected_without_changing_graph() {
         Err(Error::DuplicateNodeId)
     ));
     assert_eq!(graph.count_nodes(), 1);
-    assert_eq!(graph.get_node(node_id).unwrap().node_type.as_str(), "input");
+    assert_eq!(graph.get_node(node_id).unwrap().node_type(), "input");
 }
 
 #[test]
 fn get_node_returns_requested_node() {
     let mut graph = Graph::new("Main graph").unwrap();
     let node = Node::new("input", position(1.0, 2.0)).unwrap();
-    let node_id = node.id;
+    let node_id = node.id();
     graph.add_node(node).unwrap();
 
     let found = graph.get_node(node_id).unwrap();
 
-    assert_eq!(found.id, node_id);
-    assert_eq!(found.position, position(1.0, 2.0));
+    assert_eq!(found.id(), node_id);
+    assert_eq!(found.position(), &position(1.0, 2.0));
 }
 
 #[test]
 fn get_node_mut_allows_changing_position() {
     let mut graph = Graph::new("Main graph").unwrap();
     let node = Node::new("input", position(0.0, 0.0)).unwrap();
-    let node_id = node.id;
+    let node_id = node.id();
     graph.add_node(node).unwrap();
 
     graph
@@ -111,8 +110,8 @@ fn get_node_mut_allows_changing_position() {
         .set_position(position(8.0, 13.0));
 
     assert_eq!(
-        graph.get_node(node_id).unwrap().position,
-        position(8.0, 13.0)
+        graph.get_node(node_id).unwrap().position(),
+        &position(8.0, 13.0)
     );
 }
 
@@ -120,7 +119,7 @@ fn get_node_mut_allows_changing_position() {
 fn remove_node_deletes_requested_node() {
     let mut graph = Graph::new("Main graph").unwrap();
     let node = Node::new("input", position(0.0, 0.0)).unwrap();
-    let node_id = node.id;
+    let node_id = node.id();
     graph.add_node(node).unwrap();
 
     assert!(graph.remove_node(node_id).is_some());
@@ -141,7 +140,7 @@ fn missing_uuid_returns_none_for_search_and_removal() {
 fn graph_json_round_trip_preserves_nodes() {
     let mut graph = Graph::new("Main graph").unwrap();
     let node = Node::new("input", position(3.5, -2.0)).unwrap();
-    let node_id = node.id;
+    let node_id = node.id();
     graph.add_node(node).unwrap();
 
     let json = serde_json::to_string(&graph).unwrap();
@@ -150,9 +149,9 @@ fn graph_json_round_trip_preserves_nodes() {
     assert_eq!(restored.name(), "Main graph");
     assert_eq!(restored.count_nodes(), 1);
     let restored_node = restored.get_node(node_id).unwrap();
-    assert_eq!(restored_node.id, node_id);
-    assert_eq!(restored_node.node_type.as_str(), "input");
-    assert_eq!(restored_node.position, position(3.5, -2.0));
+    assert_eq!(restored_node.id(), node_id);
+    assert_eq!(restored_node.node_type(), "input");
+    assert_eq!(restored_node.position(), &position(3.5, -2.0));
 
     let original_json: Value = serde_json::from_str(&json).unwrap();
     let restored_json = serde_json::to_value(restored).unwrap();
