@@ -1,6 +1,9 @@
-[package]
-name = "pulse"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "3"
 
-[dependencies]
+members = [
+    "crates/pulse-core",
+]
+
+[workspace.package]
+edition = "2024"
