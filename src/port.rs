@@ -45,7 +45,7 @@ impl Port {
     }
 
     pub fn id(&self) -> &str {
-        &self.id.as_str()
+        self.id.as_str()
     }
 
     pub fn kind(&self) -> &PortKind {
@@ -67,7 +67,7 @@ pub struct PortId(String);
 
 impl PortId {
     pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        validate_non_empty(value.into(), Error::EmptyPortId).map(Self)
+        validate_non_empty(value.into(), "port ID").map(Self)
     }
 
     pub fn as_str(&self) -> &str {

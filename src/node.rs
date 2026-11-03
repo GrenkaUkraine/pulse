@@ -47,7 +47,7 @@ impl Node {
         }
 
         if self.ports.contains_key(port.id()) {
-            return Err(Error::DuplicatePortId);
+            return Err(Error::DuplicateId(port.id().to_owned()));
         }
 
         self.ports.insert(port.id().to_string(), port);
@@ -77,7 +77,7 @@ pub struct NodeType(String);
 
 impl NodeType {
     pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        validate_non_empty(value.into(), Error::EmptyNodeType).map(Self)
+        validate_non_empty(value.into(), "node type").map(Self)
     }
 
     pub fn as_str(&self) -> &str {

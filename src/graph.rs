@@ -24,7 +24,7 @@ impl Graph {
 
     pub fn add_node(&mut self, node: Node) -> Result<(), Error> {
         if self.nodes.contains_key(&node.id()) {
-            return Err(Error::DuplicateNodeId);
+            return Err(Error::DuplicateId(node.id().to_string()));
         }
 
         let node_id = node.id();
@@ -87,7 +87,7 @@ pub struct GraphName(String);
 
 impl GraphName {
     pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        validate_non_empty(value.into(), Error::EmptyGraphName).map(Self)
+        validate_non_empty(value.into(), "graph name").map(Self)
     }
 
     pub fn as_str(&self) -> &str {

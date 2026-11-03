@@ -32,11 +32,11 @@ fn created_nodes_have_unique_uuids() {
 fn invalid_node_type_is_rejected() {
     assert!(matches!(
         Node::new("", position(0.0, 0.0)),
-        Err(Error::EmptyNodeType)
+        Err(Error::Empty(field)) if field == "node type"
     ));
     assert!(matches!(
         Node::new(" \t\n", position(0.0, 0.0)),
-        Err(Error::EmptyNodeType)
+        Err(Error::Empty(field)) if field == "node type"
     ));
 }
 
@@ -79,7 +79,7 @@ fn duplicate_node_uuid_is_rejected_without_changing_graph() {
     graph.add_node(node).unwrap();
     assert!(matches!(
         graph.add_node(duplicate),
-        Err(Error::DuplicateNodeId)
+        Err(Error::DuplicateId(id)) if id == node_id.to_string()
     ));
     assert_eq!(graph.count_nodes(), 1);
     assert_eq!(graph.get_node(node_id).unwrap().node_type(), "input");
@@ -180,7 +180,7 @@ fn duplicate_port_id_is_rejected_without_changing_node() {
     node.add_port(first).unwrap();
     assert!(matches!(
         node.add_port(duplicate),
-        Err(Error::DuplicatePortId)
+        Err(Error::DuplicateId(id)) if id == "value"
     ));
     assert_eq!(node.port_count(), 1);
 }
