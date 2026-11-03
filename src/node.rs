@@ -1,4 +1,5 @@
-use crate::error::{validate_non_empty, Error};
+use crate::non_empty_string::NonEmptyString;
+use crate::error::Error;
 use crate::port::Port;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -7,7 +8,7 @@ use uuid::Uuid;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Node {
     id: Uuid,
-    node_type: NodeType,
+    node_type: NonEmptyString,
     position: NodePosition,
     ports: HashMap<String, Port>,
     #[serde(skip)]
@@ -18,7 +19,7 @@ impl Node {
     pub fn new(node_type: impl Into<String>, position: NodePosition) -> Result<Self, Error> {
         Ok(Self {
             id: Uuid::new_v4(),
-            node_type: NodeType::new(node_type)?,
+            node_type: NonEmptyString::new(node_type, "node type")?,
             position,
             ports: HashMap::new(),
             ports_locked: false,
@@ -68,34 +69,6 @@ impl Node {
 
     pub(crate) fn lock_ports(&mut self) {
         self.ports_locked = true;
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "String", into = "String")]
-pub struct NodeType(String);
-
-impl NodeType {
-    pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        validate_non_empty(value.into(), "node type").map(Self)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl TryFrom<String> for NodeType {
-    type Error = Error;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::new(value)
-    }
-}
-
-impl From<NodeType> for String {
-    fn from(value: NodeType) -> Self {
-        value.0
     }
 }
 

@@ -1,6 +1,7 @@
+use crate::non_empty_string::NonEmptyString;
 use crate::connection::Connection;
 use crate::{
-    error::{validate_non_empty, Error},
+    error::Error,
     node::Node,
 };
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize)]
 pub struct Graph {
     id: Uuid,
-    name: GraphName,
+    name: NonEmptyString,
     nodes: HashMap<Uuid, Node>,
     connections: HashMap<Uuid, Connection>,
 }
@@ -19,7 +20,7 @@ impl Graph {
     pub fn new(name: impl Into<String>) -> Result<Self, Error> {
         Ok(Self {
             id: Uuid::new_v4(),
-            name: GraphName::new(name)?,
+            name: NonEmptyString::new(name, "graph name")?,
             nodes: HashMap::new(),
             connections: HashMap::new(),
         })
@@ -156,7 +157,7 @@ impl<'de> Deserialize<'de> for Graph {
         #[derive(Deserialize)]
         struct GraphData {
             id: Uuid,
-            name: GraphName,
+            name: NonEmptyString,
             nodes: HashMap<Uuid, Node>,
             connections: HashMap<Uuid, Connection>,
         }
@@ -178,33 +179,5 @@ impl<'de> Deserialize<'de> for Graph {
             nodes,
             connections,
         })
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "String", into = "String")]
-pub struct GraphName(String);
-
-impl GraphName {
-    pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        validate_non_empty(value.into(), "graph name").map(Self)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl TryFrom<String> for GraphName {
-    type Error = Error;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::new(value)
-    }
-}
-
-impl From<GraphName> for String {
-    fn from(value: GraphName) -> Self {
-        value.0
     }
 }

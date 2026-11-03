@@ -45,11 +45,3 @@ impl fmt::Display for Error {
 }
 
 impl std::error::Error for Error {}
-
-pub(crate) fn validate_non_empty(value: String, field: &str) -> Result<String, Error> {
-    if value.trim().is_empty() {
-        return Err(Error::Empty(field.to_owned()));
-    }
-
-    Ok(value)
-}

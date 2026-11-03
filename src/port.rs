@@ -1,4 +1,5 @@
-use crate::error::{validate_non_empty, Error};
+use crate::non_empty_string::NonEmptyString;
+use crate::error::Error;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
@@ -23,7 +24,7 @@ pub enum DataType {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Port {
-    id: PortId,
+    id: NonEmptyString,
     kind: PortKind,
     direction: PortDirection,
     data_type: Option<DataType>,
@@ -44,7 +45,7 @@ impl Port {
         }
 
         Ok(Self {
-            id: PortId::new(id)?,
+            id: NonEmptyString::new(id, "port ID")?,
             kind,
             direction,
             data_type,
@@ -65,33 +66,5 @@ impl Port {
 
     pub fn data_type(&self) -> Option<&DataType> {
         self.data_type.as_ref()
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(try_from = "String", into = "String")]
-pub struct PortId(String);
-
-impl PortId {
-    pub fn new(value: impl Into<String>) -> Result<Self, Error> {
-        validate_non_empty(value.into(), "port ID").map(Self)
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-impl TryFrom<String> for PortId {
-    type Error = Error;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Self::new(value)
-    }
-}
-
-impl From<PortId> for String {
-    fn from(value: PortId) -> Self {
-        value.0
     }
 }
