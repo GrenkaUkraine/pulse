@@ -10,6 +10,7 @@ pub struct PortDefinition {
     pub kind: PortKind,
     pub direction: PortDirection,
     pub data_type: Option<DataType>,
+    pub default_value: Option<DefaultValue>,
 }
 
 #[derive(Debug)]
@@ -23,7 +24,9 @@ pub struct NodeDefinition {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum NodeCategory {
     Flow,
+    Gpio,
     Values,
+    Logic,
 }
 
 impl NodeCategory {
@@ -31,13 +34,17 @@ impl NodeCategory {
         match self {
             Self::Flow => "flow",
             Self::Values => "values",
+            Self::Gpio => "gpio",
+            Self::Logic => "logic",
         }
     }
 
     pub fn display_name(self) -> &'static str {
         match self {
-            Self::Flow => "Управление",
-            Self::Values => "Значения",
+            Self::Flow => "Flow",
+            Self::Values => "Values",
+            Self::Gpio => "GPIO",
+            Self::Logic => "Logic",
         }
     }
 }
@@ -55,4 +62,11 @@ impl NodeDefinition {
         }
         Ok(node)
     }
+}
+
+/// Initial value for a data input or a constant node parameter.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DefaultValue {
+    Bool(bool),
+    Int(i64),
 }

@@ -12,7 +12,18 @@ fn lists_and_finds_builtin_nodes() {
         .collect();
     assert_eq!(
         ids,
-        ["flow.start", "flow.branch", "value.bool", "value.int"]
+        [
+            "flow.setup",
+            "flow.loop",
+            "flow.branch",
+            "flow.delay",
+            "gpio.digital_write",
+            "gpio.digital_read",
+            "value.bool",
+            "value.int",
+            "logic.not",
+            "logic.equal_int"
+        ]
     );
     for id in ids {
         assert_eq!(catalog::find(id).unwrap().id, id);
@@ -32,7 +43,7 @@ fn creates_distinct_instances_with_the_same_ports() {
     assert_eq!(second.position(), &NodePosition { x: 10.0, y: 20.0 });
     assert_eq!(first.port_count(), 4);
     assert_eq!(second.port_count(), 4);
-    for id in ["in", "condition", "true", "false"] {
+    for id in ["exec_in", "condition", "true", "false"] {
         let first_port = first.get_port(id).unwrap();
         let second_port = second.get_port(id).unwrap();
         assert_eq!(first_port.kind(), second_port.kind());
@@ -44,7 +55,7 @@ fn creates_distinct_instances_with_the_same_ports() {
 #[test]
 fn connects_builtin_nodes_in_a_graph() {
     let mut graph = Graph::new("Branch example").unwrap();
-    let start = catalog::create("flow.start", position()).unwrap();
+    let start = catalog::create("flow.setup", position()).unwrap();
     let constant = catalog::create("value.bool", position()).unwrap();
     let branch = catalog::create("flow.branch", position()).unwrap();
     let (start_id, constant_id, branch_id) = (start.id(), constant.id(), branch.id());
@@ -52,7 +63,9 @@ fn connects_builtin_nodes_in_a_graph() {
         graph.add_node(node).unwrap();
     }
 
-    graph.connect(start_id, "out", branch_id, "in").unwrap();
+    graph
+        .connect(start_id, "exec", branch_id, "exec_in")
+        .unwrap();
     graph
         .connect(constant_id, "value", branch_id, "condition")
         .unwrap();
@@ -67,12 +80,12 @@ fn exposes_categories_and_creates_an_integer_constant() {
     let branch = catalog::find("flow.branch").unwrap();
     assert_eq!(branch.category, NodeCategory::Flow);
     assert_eq!(branch.category.id(), "flow");
-    assert_eq!(branch.category.display_name(), "Управление");
+    assert_eq!(branch.category.display_name(), "Flow");
 
     let definition = catalog::find("value.int").unwrap();
     assert_eq!(definition.category, NodeCategory::Values);
     assert_eq!(definition.category.id(), "values");
-    assert_eq!(definition.category.display_name(), "Значения");
+    assert_eq!(definition.category.display_name(), "Values");
 
     let node = catalog::create("value.int", position()).unwrap();
     assert_eq!(node.port_count(), 1);
