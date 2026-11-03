@@ -5,6 +5,7 @@ pub enum Error {
     DuplicateNodeId,
     EmptyGraphName,
     EmptyNodeType,
+    EmptyPortId,
 }
 
 impl fmt::Display for Error {
@@ -13,6 +14,7 @@ impl fmt::Display for Error {
             Self::DuplicateNodeId => formatter.write_str("a node with this UUID already exists"),
             Self::EmptyGraphName => formatter.write_str("graph name cannot be empty or whitespace-only"),
             Self::EmptyNodeType => formatter.write_str("node type cannot be empty or whitespace-only"),
+            Self::EmptyPortId => formatter.write_str("port ID cannot be empty or whitespace-only"),
         }
     }
 }
