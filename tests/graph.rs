@@ -99,16 +99,15 @@ fn get_node_returns_requested_node() {
 }
 
 #[test]
-fn get_node_mut_allows_changing_position() {
+fn set_node_position_changes_position() {
     let mut graph = Graph::new("Main graph").unwrap();
     let node = Node::new("input", position(0.0, 0.0)).unwrap();
     let node_id = node.id();
     graph.add_node(node).unwrap();
 
     graph
-        .get_node_mut(node_id)
-        .unwrap()
-        .set_position(position(8.0, 13.0));
+        .set_node_position(node_id, position(8.0, 13.0))
+        .unwrap();
 
     assert_eq!(
         graph.get_node(node_id).unwrap().position(),
@@ -212,23 +211,15 @@ fn nodes_can_have_same_port_id() {
 }
 
 #[test]
-fn ports_cannot_be_changed_after_node_is_added_to_graph() {
+fn set_node_position_rejects_missing_node() {
     let mut graph = Graph::new("Main graph").unwrap();
-    let node = Node::new("input", position(0.0, 0.0)).unwrap();
-    let node_id = node.id();
-    graph.add_node(node).unwrap();
+    let node_id = Uuid::new_v4();
 
-    let port = Port::new(
-        "value",
-        PortKind::Data,
-        PortDirection::Input,
-        Some(DataType::Float),
-    )
-    .unwrap();
-    let result = graph.get_node_mut(node_id).unwrap().add_port(port);
-
-    assert!(matches!(result, Err(Error::PortsLocked)));
-    assert_eq!(graph.get_node(node_id).unwrap().port_count(), 0);
+    assert_eq!(
+        graph.set_node_position(node_id, position(8.0, 13.0)),
+        Err(Error::NodeNotFound(node_id))
+    );
+    assert_eq!(graph.count_nodes(), 0);
 }
 
 fn node_with_port(

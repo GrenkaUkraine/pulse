@@ -2,7 +2,7 @@ use crate::non_empty_string::NonEmptyString;
 use crate::connection::Connection;
 use crate::{
     error::Error,
-    node::Node,
+    node::{Node, NodePosition},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -57,8 +57,14 @@ impl Graph {
         self.nodes.get(&node_id)
     }
 
-    pub fn get_node_mut(&mut self, node_id: Uuid) -> Option<&mut Node> {
-        self.nodes.get_mut(&node_id)
+    pub fn set_node_position(
+        &mut self,
+        node_id: Uuid,
+        position: NodePosition,
+    ) -> Result<(), Error> {
+        let node = self.nodes.get_mut(&node_id).ok_or(Error::NodeNotFound(node_id))?;
+        node.set_position(position);
+        Ok(())
     }
 
     pub fn count_nodes(&self) -> usize {
