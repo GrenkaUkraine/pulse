@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "pulse-ide",
+        "title": "Pulse IDE",
         "width": 800,
         "height": 600
       }
