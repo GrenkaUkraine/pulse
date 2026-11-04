@@ -23,6 +23,7 @@ with values, and interact with hardware. ESP32 support is planned for the future
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&amp;logo=typescript&amp;logoColor=white">
   <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&amp;logo=vite&amp;logoColor=white">
   <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&amp;logo=tailwindcss&amp;logoColor=white">
+  <img alt="Radix Themes" src="https://img.shields.io/badge/Radix_Themes-CC3363?style=for-the-badge&amp;logo=radixui&amp;logoColor=white">
 </p>
 
 ### Hardware targets
