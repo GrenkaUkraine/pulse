@@ -1,1 +1,56 @@
 @import "tailwindcss";
+
+@theme inline {
+	--color-ui-background: var(--color-background);
+	--color-ui-surface: var(--color-surface);
+	--color-ui-panel: var(--color-panel-solid);
+	--color-ui-muted: var(--gray-11);
+	--color-ui-foreground: var(--gray-12);
+	--color-ui-border: var(--gray-6);
+	--color-ui-accent: var(--accent-9);
+	--color-ui-accent-hover: var(--accent-10);
+	--color-ui-accent-foreground: var(--accent-contrast);
+	--color-ui-accent-1: var(--accent-1);
+	--color-ui-accent-2: var(--accent-2);
+	--color-ui-accent-3: var(--accent-3);
+	--color-ui-accent-4: var(--accent-4);
+	--color-ui-accent-5: var(--accent-5);
+	--color-ui-accent-6: var(--accent-6);
+	--color-ui-accent-7: var(--accent-7);
+	--color-ui-accent-8: var(--accent-8);
+	--color-ui-accent-9: var(--accent-9);
+	--color-ui-accent-10: var(--accent-10);
+	--color-ui-accent-11: var(--accent-11);
+	--color-ui-accent-12: var(--accent-12);
+	--color-ui-gray-1: var(--gray-1);
+	--color-ui-gray-2: var(--gray-2);
+	--color-ui-gray-3: var(--gray-3);
+	--color-ui-gray-4: var(--gray-4);
+	--color-ui-gray-5: var(--gray-5);
+	--color-ui-gray-6: var(--gray-6);
+	--color-ui-gray-7: var(--gray-7);
+	--color-ui-gray-8: var(--gray-8);
+	--color-ui-gray-9: var(--gray-9);
+	--color-ui-gray-10: var(--gray-10);
+	--color-ui-gray-11: var(--gray-11);
+	--color-ui-gray-12: var(--gray-12);
+	--radius-ui-1: var(--radius-1);
+	--radius-ui-2: var(--radius-2);
+	--radius-ui-3: var(--radius-3);
+	--radius-ui-4: var(--radius-4);
+	--radius-ui-5: var(--radius-5);
+	--radius-ui-6: var(--radius-6);
+	--spacing-ui-1: var(--space-1);
+	--spacing-ui-2: var(--space-2);
+	--spacing-ui-3: var(--space-3);
+	--spacing-ui-4: var(--space-4);
+	--spacing-ui-5: var(--space-5);
+	--spacing-ui-6: var(--space-6);
+	--spacing-ui-7: var(--space-7);
+	--spacing-ui-8: var(--space-8);
+	--spacing-ui-9: var(--space-9);
+}
+
+/** {*/
+/*	outline: 1px solid red;*/
+/*}*/
