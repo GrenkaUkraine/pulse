@@ -46,7 +46,7 @@ export default function TitleBar() {
 				</IconButton>
 			</div>
 
-			<div data-tauri-drag-region className="h-full flex-1" />
+			<div data-tauri-drag-region className="flex-1 self-stretch" />
 
 			<div className="flex">
 				<div className="flex gap-ui-3 p-ui-2 items-center">
@@ -68,7 +68,7 @@ export default function TitleBar() {
 						<ArrowUpTrayIcon aria-hidden="true" className="size-6" />
 					</IconButton>
 				</div>
-				<div data-tauri-drag-region className="h-full w-6" />
+				<div data-tauri-drag-region className="w-6 self-stretch" />
 				<div className="flex gap-ui-3 p-ui-2 items-center">
 					<IconButton
 						size="2"
