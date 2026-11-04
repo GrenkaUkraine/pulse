@@ -9,6 +9,7 @@ import {
 import { HeartIcon } from "@heroicons/react/24/solid";
 import { IconButton } from "@radix-ui/themes";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import LogoPulse from "../../assets/LogoPulse.svg?react";
 import WindowControls from "./WindowControls.tsx";
 
 export default function TitleBar() {
@@ -17,6 +18,11 @@ export default function TitleBar() {
 	return (
 		<div className="flex items-center">
 			<div className="flex gap-ui-3 p-ui-2 items-center">
+				<LogoPulse
+					role="img"
+					aria-label="Pulse IDE"
+					className="size-8 shrink-0"
+				/>
 				<IconButton
 					size="2"
 					variant="ghost"
