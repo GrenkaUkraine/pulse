@@ -1,0 +1,109 @@
+Pulse IDE Source-Available License
+Version 1.0, November 5, 2026
+
+Copyright (c) 2026 Hlib Kora (hkora / GrenkaUkraine)
+Original project: https://github.com/GrenkaUkraine/pulse
+
+1. Scope
+
+This license applies to the Pulse IDE code and assets for which the above
+copyright holder owns the rights, unless a file expressly states otherwise.
+Third-party materials remain subject to their own licenses. This license
+does not restrict rights independently granted by those third-party licenses.
+
+"Software" means the materials covered by this license.
+"Modified Version" means a version containing substantive changes to the
+Software's functionality, behavior, user experience, or implementation.
+Changing only names, branding, attribution, formatting, packaging, or build
+metadata does not constitute substantive changes.
+
+2. Permission to use and modify
+
+Subject to these terms, you may obtain, run, study, and privately modify the
+Software without charge, for personal, educational, nonprofit, or business
+purposes.
+
+You may use the Software to create firmware, programs, and devices for sale.
+Outputs created using the Software are not covered by this license merely
+because the Software was used to create them. Software code or assets copied
+into an output remain subject to this license.
+
+3. Redistribution
+
+You may publicly redistribute only Modified Versions. You may not redistribute
+an unchanged copy of the Software, whether as source code, a compiled
+application, a mirror, or a repackaged release, without separate permission
+from the copyright holder. Private backup copies are permitted.
+
+Every distributed Modified Version must:
+(a) be available without a purchase price, access fee, subscription, or other
+    mandatory payment;
+(b) include its complete corresponding source code, or a prominent link where
+    recipients can download that source code without charge;
+(c) provide source code in the preferred form for modification, including
+    build scripts and dependency manifests needed to build that version;
+(d) be distributed under this same license;
+(e) preserve this license, the original copyright notice, and applicable
+    third-party notices;
+(f) prominently link to the original source project at
+    https://github.com/GrenkaUkraine/pulse in its README and, for a
+    distributed application, in its About screen or equivalent accessible
+    project information view; and
+(g) clearly identify the distributor, explain the substantive changes, and
+    state that the Modified Version is an unofficial fork.
+
+Offering a Modified Version through a browser, remote desktop, or another
+hosted interface must provide its users with the same free access to the
+corresponding source code and attribution.
+
+4. Commercial restrictions
+
+You may not sell, commercially sublicense, rent, or charge for access to the
+Software or Modified Versions, including paid hosting, paid features, paid
+plugins incorporating the Software, or inclusion in a paid software bundle.
+You may not use advertising or sponsorship placements within the Software
+or a Modified Version to monetize it.
+
+You may not incorporate the Software into a proprietary or closed-source
+software product or service. Internal use within a business is permitted
+under Section 2.
+
+The following limited exceptions are permitted for a Modified Version that
+fully complies with Section 3:
+(a) accepting genuinely voluntary donations; and
+(b) charging for optional human support, training, or consulting.
+
+Donations or support payments must not be required to obtain the application,
+its features, updates, or corresponding source code. An unchanged or merely
+rebranded copy does not qualify for these exceptions.
+
+These restrictions concern commercialization of the Software itself.
+Commercial use of the Software as a development tool and sale of independently
+created outputs or devices remain permitted under Section 2.
+
+5. Names and endorsement
+
+You may refer to Pulse IDE to describe the origin of your work and meet the
+attribution requirements. This license grants no right to claim official
+status, author approval, or endorsement, or to use the author's identity or
+branding in a misleading way.
+
+6. Termination
+
+The permissions granted by this license terminate automatically if you
+violate its terms. Contact the copyright holder through the original project
+for reinstatement or separate permissions.
+
+7. Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. TO THE MAXIMUM EXTENT
+PERMITTED BY APPLICABLE LAW, THE AUTHORS AND COPYRIGHT HOLDERS SHALL NOT BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN
+CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+8. Other rights
+
+Rights not expressly granted are reserved. This license does not limit rights
+that cannot be restricted under applicable law.
