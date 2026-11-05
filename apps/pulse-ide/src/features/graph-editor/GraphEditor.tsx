@@ -3,7 +3,6 @@ import {
 	Background,
 	BackgroundVariant,
 	type Connection,
-	Controls,
 	type Edge,
 	type NodeTypes,
 	ReactFlow,
@@ -12,8 +11,8 @@ import {
 } from "@xyflow/react";
 import { useCallback } from "react";
 import PanelContainer from "../../shared/ui/PanelContainer";
+import GraphControls from "./GraphControls.tsx";
 import PulseConnectionLine from "./PulseConnectionLine";
-
 import PulseEdge from "./PulseEdge";
 import PulseNode, { type PulseNodeType } from "./PulseNode";
 
@@ -432,6 +431,7 @@ export default function GraphEditor() {
 			className="overflow-hidden"
 		>
 			<ReactFlow
+				className="pulse-graph"
 				proOptions={{ hideAttribution: true }}
 				nodes={nodes}
 				nodeTypes={nodeTypes}
@@ -446,8 +446,13 @@ export default function GraphEditor() {
 				colorMode="dark"
 				fitView
 			>
-				<Background variant={BackgroundVariant.Dots} gap={20} size={1} />
-				<Controls />
+				<Background
+					variant={BackgroundVariant.Dots}
+					color="var(--gray-6)"
+					gap={20}
+					size={1}
+				/>
+				<GraphControls />
 			</ReactFlow>
 		</PanelContainer>
 	);

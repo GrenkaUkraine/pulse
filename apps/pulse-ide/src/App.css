@@ -77,3 +77,7 @@
 	--color-node-logic-from: var(--violet-a5);
 	--color-node-logic-to: var(--violet-a1);
 }
+
+.react-flow.pulse-graph {
+	--xy-background-color: transparent;
+}
