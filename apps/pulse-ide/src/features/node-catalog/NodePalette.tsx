@@ -14,7 +14,6 @@ export default function NodePalette() {
 	const catalog = useCatalogStore((state) => state.definitions);
 	const status = useCatalogStore((state) => state.status);
 	const error = useCatalogStore((state) => state.error);
-	const loadCatalog = useCatalogStore((state) => state.loadCatalog);
 	const loading = status === "idle" || status === "loading";
 	const categories: PaletteCategoryDefinition[] = [];
 	for (const node of catalog) {
@@ -79,19 +78,6 @@ export default function NodePalette() {
 					<p className="py-ui-3 text-xs text-ui-muted" role="status">
 						Loading nodes...
 					</p>
-				)}
-				{error && (
-					<div className="py-ui-3 text-xs" role="alert">
-						<p>Could not load the node catalog.</p>
-						<p className="mt-ui-1 break-words text-ui-muted">{error}</p>
-						<button
-							type="button"
-							className="mt-ui-2 text-ui-accent"
-							onClick={() => void loadCatalog()}
-						>
-							Retry
-						</button>
-					</div>
 				)}
 				{!loading &&
 					!error &&

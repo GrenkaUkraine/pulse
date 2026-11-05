@@ -9,20 +9,27 @@ interface CatalogState {
 	loadCatalog: () => Promise<void>;
 }
 
+let loading: Promise<void> | undefined;
+
 export const useCatalogStore = create<CatalogState>((set, get) => ({
 	definitions: [],
 	status: "idle",
 	error: null,
-	async loadCatalog() {
-		const { status } = get();
-		if (status === "loading" || status === "ready") return;
-
+	loadCatalog() {
+		if (get().status === "ready") return Promise.resolve();
+		if (loading) return loading;
 		set({ status: "loading", error: null });
-		try {
-			const definitions = await getNodeCatalog();
-			set({ definitions, status: "ready" });
-		} catch (reason) {
-			set({ error: String(reason), status: "error" });
-		}
+		loading = getNodeCatalog()
+			.then((definitions) => {
+				set({ definitions, status: "ready" });
+			})
+			.catch((reason: unknown) => {
+				console.error("Failed to load catalog:", reason);
+				set({ error: String(reason), status: "error" });
+			})
+			.finally(() => {
+				loading = undefined;
+			});
+		return loading;
 	},
 }));

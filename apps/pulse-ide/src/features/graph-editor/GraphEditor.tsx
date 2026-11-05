@@ -1,49 +1,48 @@
 import {
-	addEdge,
 	Background,
 	BackgroundVariant,
 	type Connection,
 	type Edge,
 	type NodeTypes,
 	ReactFlow,
-	useEdgesState,
-	useNodesState,
 } from "@xyflow/react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PanelContainer from "../../shared/ui/PanelContainer";
-import GraphControls from "./GraphControls.tsx";
+import { getPinLimit } from "./connection-preview";
+import GraphControls from "./GraphControls";
 import GraphMiniMap from "./GraphMiniMap";
-import type { NodePinDefinition } from "./node.types";
+import { useGraphStore } from "./graph.store";
 import PulseConnectionLine from "./PulseConnectionLine";
 import PulseEdge from "./PulseEdge";
-import PulseNode, { type PulseNodeType } from "./PulseNode";
+import PulseNode from "./PulseNode";
 
 const nodeTypes = { pulse: PulseNode } satisfies NodeTypes;
-
 const edgeTypes = { pulse: PulseEdge };
 const defaultEdgeOptions = { type: "pulse" };
 
 export default function GraphEditor() {
 	const [miniMapOpen, setMiniMapOpen] = useState(true);
-	const [nodes, , onNodesChange] = useNodesState<PulseNodeType>([]);
-	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-	const getConnectionPorts = useCallback(
+	const nodes = useGraphStore((state) => state.nodes);
+	const edges = useGraphStore((state) => state.edges);
+	const onNodesChange = useGraphStore((state) => state.onNodesChange);
+	const onEdgesChange = useGraphStore((state) => state.onEdgesChange);
+	const loadGraph = useGraphStore((state) => state.loadGraph);
+	const mutate = useGraphStore((state) => state.mutate);
+	const status = useGraphStore((state) => state.status);
+
+	useEffect(() => {
+		void loadGraph();
+	}, [loadGraph]);
+
+	const canConnect = useCallback(
 		(connection: Connection | Edge) => {
+			if (connection.source === connection.target) return false;
 			const source = nodes
 				.find((node) => node.id === connection.source)
 				?.data.pins.find((pin) => pin.id === connection.sourceHandle);
 			const target = nodes
 				.find((node) => node.id === connection.target)
 				?.data.pins.find((pin) => pin.id === connection.targetHandle);
-			return { source, target };
-		},
-		[nodes],
-	);
-
-	const canConnect = useCallback(
-		(connection: Connection | Edge) => {
-			if (connection.source === connection.target) return false;
-			const { source, target } = getConnectionPorts(connection);
 			return (
 				source?.direction === "output" &&
 				target?.direction === "input" &&
@@ -52,56 +51,23 @@ export default function GraphEditor() {
 				getPinLimit(target) > 0
 			);
 		},
-		[getConnectionPorts],
+		[nodes],
 	);
 
 	const onConnect = useCallback(
 		(connection: Connection) => {
-			if (!canConnect(connection)) return;
-			const { source, target } = getConnectionPorts(connection);
-			if (!source || !target) return;
-			setEdges((current) => {
-				const duplicate = current.some(
-					(edge) =>
-						edge.source === connection.source &&
-						edge.sourceHandle === connection.sourceHandle &&
-						edge.target === connection.target &&
-						edge.targetHandle === connection.targetHandle,
-				);
-				if (duplicate) return current;
-
-				const incoming = current.filter(
-					(edge) =>
-						edge.target === connection.target &&
-						edge.targetHandle === connection.targetHandle,
-				);
-				const removeIncoming = Math.max(
-					0,
-					incoming.length + 1 - getPinLimit(target),
-				);
-				const removed = new Set(
-					incoming.slice(0, removeIncoming).map((edge) => edge.id),
-				);
-				const outgoing = current.filter(
-					(edge) =>
-						!removed.has(edge.id) &&
-						edge.source === connection.source &&
-						edge.sourceHandle === connection.sourceHandle,
-				);
-				const removeOutgoing = Math.max(
-					0,
-					outgoing.length + 1 - getPinLimit(source),
-				);
-				for (const edge of outgoing.slice(0, removeOutgoing))
-					removed.add(edge.id);
-				return addEdge(
-					connection,
-					current.filter((edge) => !removed.has(edge.id)),
-				);
+			if (!connection.sourceHandle || !connection.targetHandle) return;
+			void mutate({
+				type: "connect",
+				source: connection.source,
+				sourceHandle: connection.sourceHandle,
+				target: connection.target,
+				targetHandle: connection.targetHandle,
 			});
 		},
-		[canConnect, getConnectionPorts, setEdges],
+		[mutate],
 	);
+
 	return (
 		<PanelContainer
 			hasPadding={false}
@@ -118,9 +84,19 @@ export default function GraphEditor() {
 				defaultEdgeOptions={defaultEdgeOptions}
 				connectionLineComponent={PulseConnectionLine}
 				onConnect={onConnect}
-				isValidConnection={(connection) => canConnect(connection)}
+				isValidConnection={canConnect}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
+				onBeforeDelete={async ({ nodes, edges }) => {
+					await mutate({
+						type: "deleteElements",
+						nodeIds: nodes.map((node) => node.id),
+						edgeIds: edges.map((edge) => edge.id),
+					});
+					return false;
+				}}
+				nodesDraggable={status === "ready"}
+				nodesConnectable={status === "ready"}
 				colorMode="dark"
 				fitView
 			>
@@ -138,13 +114,4 @@ export default function GraphEditor() {
 			</ReactFlow>
 		</PanelContainer>
 	);
-}
-
-function getPinLimit(pin: NodePinDefinition): number {
-	if (pin.maxConnections === null) return Infinity;
-	const limit =
-		pin.maxConnections ??
-		(pin.direction === "input" || pin.dataType === "execution" ? 1 : Infinity);
-	if (limit === Infinity) return limit;
-	return Number.isSafeInteger(limit) && limit >= 0 ? limit : 0;
 }

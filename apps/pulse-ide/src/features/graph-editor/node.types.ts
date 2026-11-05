@@ -37,3 +37,10 @@ export interface NodeDefinition {
 	category: { id: string; title: string };
 	pins: NodePinDefinition[];
 }
+
+export interface NodeInstance {
+	id: string;
+	typeId: string;
+	position: { x: number; y: number };
+	values: Record<string, PinValue>;
+}

@@ -74,6 +74,16 @@ impl Graph {
         Ok(())
     }
 
+    pub fn nodes(&self) -> impl Iterator<Item = &Node> {
+        self.nodes.values()
+    }
+
+    pub fn connections(&self) -> impl Iterator<Item = &Connection> {
+        self.connection_order
+            .iter()
+            .filter_map(|id| self.connections.get(id))
+    }
+
     pub fn count_nodes(&self) -> usize {
         self.nodes.len()
     }

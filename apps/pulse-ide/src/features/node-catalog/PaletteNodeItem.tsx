@@ -1,8 +1,9 @@
 import { useReactFlow, useStoreApi } from "@xyflow/react";
 import { getNodeIcon, nodeIconColors } from "../../shared/icons/node-icons";
 import { cn } from "../../shared/lib/cn";
+import { useGraphStore } from "../graph-editor/graph.store";
 
-import type { NodeDefinition, PinValue } from "../graph-editor/node.types";
+import type { NodeDefinition } from "../graph-editor/node.types";
 import type { PulseNodeType } from "../graph-editor/PulseNode";
 
 interface PaletteNodeItemProps {
@@ -10,9 +11,11 @@ interface PaletteNodeItemProps {
 }
 
 export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
-	const { addNodes, getNodes, getViewport } = useReactFlow<PulseNodeType>();
+	const { getNodes, getViewport } = useReactFlow<PulseNodeType>();
 	const store = useStoreApi();
 	const Icon = getNodeIcon(node.icon);
+	const mutate = useGraphStore((state) => state.mutate);
+	const ready = useGraphStore((state) => state.status === "ready");
 
 	function addNode() {
 		const { width, height } = store.getState();
@@ -33,30 +36,14 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 			position.x += 32;
 			position.y += 32;
 		}
-		const values: Record<string, PinValue> = {};
-		for (const pin of node.pins) {
-			if (pin.dataType !== "execution" && pin.defaultValue !== undefined)
-				values[pin.id] = pin.defaultValue;
-		}
-		addNodes({
-			id: crypto.randomUUID(),
-			type: "pulse",
-			position,
-			data: {
-				title: node.title,
-				icon: node.icon,
-				kind: node.kind,
-				pins: node.pins.map((pin) => ({ ...pin })),
-				typeId: node.id,
-				values,
-			},
-		});
+		void mutate({ type: "createNode", typeId: node.id, position });
 	}
 	return (
 		<button
 			type="button"
 			title={node.description}
 			onClick={addNode}
+			disabled={!ready}
 			className="group flex w-full items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 text-left hover:bg-ui-gray-4 cursor-pointer select-none"
 		>
 			<Icon

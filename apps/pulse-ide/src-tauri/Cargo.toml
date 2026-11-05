@@ -20,6 +20,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+uuid = { version = "1", features = ["serde"] }
 pulse-core = { path = "../../../crates/pulse-core" }
 pulse-nodes = { path = "../../../crates/pulse-nodes" }
 tauri = { version = "2", features = [] }

@@ -3,13 +3,13 @@ import {
 	type Node,
 	type NodeProps,
 	useNodeConnections,
-	useReactFlow,
 	useUpdateNodeInternals,
 } from "@xyflow/react";
 import { useEffect } from "react";
 import { getNodeIcon, nodeIconColors } from "../../shared/icons/node-icons";
 import { cn } from "../../shared/lib/cn";
 import type { PinOption } from "./controls/PinControl";
+import { useGraphStore } from "./graph.store";
 import NodePin from "./NodePin";
 import NodePinControl from "./NodePinControl";
 import type { NodeDefinition, NodeKind, PinValue } from "./node.types";
@@ -39,7 +39,7 @@ export default function PulseNode({
 }: NodeProps<PulseNodeType>) {
 	const connections = useNodeConnections();
 	const Icon = getNodeIcon(data.icon);
-	const { updateNodeData } = useReactFlow<PulseNodeType>();
+	const mutate = useGraphStore((state) => state.mutate);
 	const updateNodeInternals = useUpdateNodeInternals();
 	const connectionSignature = connections
 		.map((connection) => connection.edgeId)
@@ -94,9 +94,12 @@ export default function PulseNode({
 										value={data.values?.[pin.id]}
 										pinOptions={data.pinOptions ?? []}
 										onChange={(value) =>
-											updateNodeData(id, (node) => ({
-												values: { ...node.data.values, [pin.id]: value },
-											}))
+											void mutate({
+												type: "setValue",
+												nodeId: id,
+												portId: pin.id,
+												value,
+											})
 										}
 									/>
 								</NodePin>
