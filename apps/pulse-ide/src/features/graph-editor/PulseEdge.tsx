@@ -26,10 +26,15 @@ export function getPulseEdgePath(
 	targetX: number,
 	targetY: number,
 ): string {
-	const lead = 16;
+	const distanceX = targetX - sourceX;
+	const distanceY = targetY - sourceY;
+	const isForward = distanceX > 0;
+	const lead = isForward ? Math.min(16, distanceX / 4) : 8;
 	const startX = sourceX + lead;
 	const endX = targetX - lead;
-	const bend = Math.max(40, Math.abs(endX - startX) / 2);
+	const bend = isForward
+		? Math.min(100, (endX - startX) / 2)
+		: Math.min(100, 20 + Math.hypot(distanceX, distanceY) / 4);
 	return [
 		`M ${sourceX} ${sourceY}`,
 		`L ${startX} ${sourceY}`,
