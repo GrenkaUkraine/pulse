@@ -81,3 +81,28 @@
 .react-flow.pulse-graph {
 	--xy-background-color: transparent;
 }
+
+.pulse-minimap {
+	--xy-minimap-background-color: var(--color-panel-solid);
+	--xy-minimap-mask-background-color: var(--black-a6);
+	--xy-minimap-node-background-color: var(--gray-9);
+	border: 1px solid var(--gray-6);
+	border-radius: var(--radius-3);
+	overflow: hidden;
+}
+
+.pulse-minimap .pulse-minimap-node-event {
+	fill: var(--red-9);
+}
+.pulse-minimap .pulse-minimap-node-action {
+	fill: var(--blue-9);
+}
+.pulse-minimap .pulse-minimap-node-flow {
+	fill: var(--orange-9);
+}
+.pulse-minimap .pulse-minimap-node-value {
+	fill: var(--green-9);
+}
+.pulse-minimap .pulse-minimap-node-logic {
+	fill: var(--violet-9);
+}

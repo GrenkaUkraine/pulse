@@ -9,9 +9,10 @@ import {
 	useEdgesState,
 	useNodesState,
 } from "@xyflow/react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import PanelContainer from "../../shared/ui/PanelContainer";
 import GraphControls from "./GraphControls.tsx";
+import GraphMiniMap from "./GraphMiniMap";
 import PulseConnectionLine from "./PulseConnectionLine";
 import PulseEdge from "./PulseEdge";
 import PulseNode, { type PulseNodeType } from "./PulseNode";
@@ -371,6 +372,7 @@ const initialEdges: Edge[] = [
 ];
 
 export default function GraphEditor() {
+	const [miniMapOpen, setMiniMapOpen] = useState(true);
 	const [nodes, , onNodesChange] = useNodesState(initialNodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 	const canConnect = useCallback(
@@ -451,6 +453,10 @@ export default function GraphEditor() {
 					color="var(--gray-6)"
 					gap={20}
 					size={1}
+				/>
+				<GraphMiniMap
+					open={miniMapOpen}
+					onToggle={() => setMiniMapOpen((open) => !open)}
 				/>
 				<GraphControls />
 			</ReactFlow>
