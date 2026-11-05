@@ -4,24 +4,32 @@ import { cn } from "../lib/cn.ts";
 
 interface PanelContainerProps extends PropsWithChildren {
 	title?: string;
+	hasPadding?: boolean;
+	hasGap?: boolean;
 	className?: string;
 }
 
 export default function PanelContainer({
 	children,
 	title,
+	hasPadding = true,
+	hasGap = true,
 	className,
 }: PanelContainerProps) {
 	return (
 		<div
 			className={cn(
-				"flex h-full flex-col gap-ui-2 bg-ui-background bg-[linear-gradient(var(--color-surface),var(--color-surface))] p-ui-3 rounded-ui-3",
+				"flex h-full flex-col bg-ui-background bg-[linear-gradient(var(--color-surface),var(--color-surface))] rounded-ui-3",
+				hasPadding && "p-ui-3",
+				hasGap && "gap-ui-2",
 				className,
 			)}
 		>
-			<Text size="2" weight="bold">
-				{title}
-			</Text>
+			{title && (
+				<Text size="2" weight="bold">
+					{title}
+				</Text>
+			)}
 			{children}
 		</div>
 	);
