@@ -3,24 +3,38 @@ import {
 	BackgroundVariant,
 	Controls,
 	type Edge,
-	type Node,
+	type NodeTypes,
 	ReactFlow,
 	useEdgesState,
 	useNodesState,
 } from "@xyflow/react";
 import PanelContainer from "../../shared/ui/PanelContainer";
 
-const initialNodes: Node[] = [
+import PulseNode, { type PulseNodeType } from "./PulseNode";
+
+const nodeTypes = { pulse: PulseNode } satisfies NodeTypes;
+
+const initialNodes: PulseNodeType[] = [
 	{
 		id: "setup",
-		type: "input",
+		type: "pulse",
 		position: { x: 80, y: 100 },
-		data: { label: "On Setup" },
+		data: {
+			title: "On Setup",
+			pins: [{ id: "exec", direction: "output", dataType: "execution" }],
+		},
 	},
 	{
 		id: "delay",
+		type: "pulse",
 		position: { x: 350, y: 100 },
-		data: { label: "Delay" },
+		data: {
+			title: "Delay",
+			pins: [
+				{ id: "exec_in", direction: "input", dataType: "execution" },
+				{ id: "exec_out", direction: "output", dataType: "execution" },
+			],
+		},
 	},
 ];
 
@@ -29,11 +43,13 @@ const initialEdges: Edge[] = [
 		id: "setup-delay",
 		source: "setup",
 		target: "delay",
+		sourceHandle: "exec",
+		targetHandle: "exec_in",
 	},
 ];
 
 export default function GraphEditor() {
-	const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+	const [nodes, , onNodesChange] = useNodesState(initialNodes);
 	const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
 	return (
@@ -45,6 +61,7 @@ export default function GraphEditor() {
 			<ReactFlow
 				proOptions={{ hideAttribution: true }}
 				nodes={nodes}
+				nodeTypes={nodeTypes}
 				edges={edges}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}

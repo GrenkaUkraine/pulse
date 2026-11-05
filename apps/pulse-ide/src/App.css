@@ -55,3 +55,12 @@
 /** {*/
 /*	outline: 1px solid red;*/
 /*}*/
+
+@theme inline {
+	--color-pin-execution: white;
+	--color-pin-boolean: var(--red-10);
+	--color-pin-int: var(--blue-10);
+	--color-pin-float: var(--cyan-10);
+	--color-pin-string: var(--pink-10);
+	--color-pin-pin: var(--violet-10);
+}
