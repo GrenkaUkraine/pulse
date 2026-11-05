@@ -81,7 +81,9 @@ export default function NodePin({
 			>
 				{pin.title && <span className="text-xs">{pin.title}</span>}
 
-				{showControl && <div className="nodrag nopan">{children}</div>}
+				{showControl && (
+					<div className="nodrag nopan inline-flex">{children}</div>
+				)}
 			</div>
 		</div>
 	);
