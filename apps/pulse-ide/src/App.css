@@ -114,3 +114,12 @@
 	--color-node-value-icon: var(--green-10);
 	--color-node-logic-icon: var(--violet-10);
 }
+
+.pulse-wire-cutting,
+.pulse-wire-cutting .react-flow * {
+	cursor: crosshair;
+}
+
+.react-flow__edge-path.pulse-edge-cut {
+	--pulse-edge-stroke: var(--red-9);
+}

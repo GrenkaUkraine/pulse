@@ -15,6 +15,7 @@ import { useGraphStore } from "./graph.store";
 import PulseConnectionLine from "./PulseConnectionLine";
 import PulseEdge from "./PulseEdge";
 import PulseNode from "./PulseNode";
+import { useWireCutting } from "./useWireCutting";
 
 const nodeTypes = { pulse: PulseNode } satisfies NodeTypes;
 const edgeTypes = { pulse: PulseEdge };
@@ -22,6 +23,7 @@ const defaultEdgeOptions = { type: "pulse" };
 
 export default function GraphEditor() {
 	const [miniMapOpen, setMiniMapOpen] = useState(true);
+	const { cutting, handlers } = useWireCutting();
 	const nodes = useGraphStore((state) => state.nodes);
 	const edges = useGraphStore((state) => state.edges);
 	const onNodesChange = useGraphStore((state) => state.onNodesChange);
@@ -110,44 +112,54 @@ export default function GraphEditor() {
 			hasGap={false}
 			className="overflow-hidden"
 		>
-			<ReactFlow
-				className="pulse-graph"
-				proOptions={{ hideAttribution: true }}
-				nodes={nodes}
-				nodeTypes={nodeTypes}
-				edges={edges}
-				edgeTypes={edgeTypes}
-				defaultEdgeOptions={defaultEdgeOptions}
-				connectionLineComponent={PulseConnectionLine}
-				onConnect={onConnect}
-				isValidConnection={canConnect}
-				onNodesChange={onNodesChange}
-				onEdgesChange={onEdgesChange}
-				onBeforeDelete={async ({ nodes, edges }) => {
-					await mutate({
-						type: "deleteElements",
-						nodeIds: nodes.map((node) => node.id),
-						edgeIds: edges.map((edge) => edge.id),
-					});
-					return false;
-				}}
-				nodesDraggable={status === "ready"}
-				nodesConnectable={status === "ready"}
-				colorMode="dark"
-				fitView
+			<div
+				{...handlers}
+				className={cutting ? "h-full pulse-wire-cutting" : "h-full"}
 			>
-				<Background
-					variant={BackgroundVariant.Dots}
-					color="var(--gray-6)"
-					gap={20}
-					size={1}
-				/>
-				<GraphMiniMap
-					open={miniMapOpen}
-					onToggle={() => setMiniMapOpen((open) => !open)}
-				/>
-				<GraphControls />
-			</ReactFlow>
+				<ReactFlow
+					className="pulse-graph"
+					proOptions={{ hideAttribution: true }}
+					nodes={nodes}
+					nodeTypes={nodeTypes}
+					edges={edges}
+					edgeTypes={edgeTypes}
+					defaultEdgeOptions={defaultEdgeOptions}
+					connectionLineComponent={PulseConnectionLine}
+					onConnect={onConnect}
+					isValidConnection={canConnect}
+					onNodesChange={onNodesChange}
+					onEdgesChange={onEdgesChange}
+					deleteKeyCode={["Backspace", "Delete"]}
+					onEdgeDoubleClick={(event, edge) => {
+						event.preventDefault();
+						void mutate({ type: "disconnect", edgeId: edge.id });
+					}}
+					onBeforeDelete={async ({ nodes, edges }) => {
+						await mutate({
+							type: "deleteElements",
+							nodeIds: nodes.map((node) => node.id),
+							edgeIds: edges.map((edge) => edge.id),
+						});
+						return false;
+					}}
+					nodesDraggable={status === "ready"}
+					nodesConnectable={status === "ready"}
+					colorMode="dark"
+					fitView
+				>
+					<Background
+						variant={BackgroundVariant.Dots}
+						color="var(--gray-6)"
+						gap={20}
+						size={1}
+					/>
+					<GraphMiniMap
+						open={miniMapOpen}
+						onToggle={() => setMiniMapOpen((open) => !open)}
+					/>
+					<GraphControls />
+				</ReactFlow>
+			</div>
 		</PanelContainer>
 	);
 }

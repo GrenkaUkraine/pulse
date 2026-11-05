@@ -36,6 +36,7 @@ export default function PulseNode({
 	id,
 	data,
 	isConnectable,
+	selected,
 }: NodeProps<PulseNodeType>) {
 	const connections = useNodeConnections();
 	const Icon = getNodeIcon(data.icon);
@@ -51,7 +52,12 @@ export default function PulseNode({
 	}, [id, connectionSignature, updateNodeInternals]);
 
 	return (
-		<div className="flex flex-col gap-4 border border-ui-border rounded-ui-2 bg-ui-background/80 overflow-hidden">
+		<div
+			className={cn(
+				"flex flex-col gap-4 border rounded-ui-2 bg-ui-background/80 overflow-hidden",
+				selected ? "border-ui-accent" : "border-ui-border",
+			)}
+		>
 			<div
 				className={cn(
 					"flex items-center gap-ui-2 px-ui-2 py-ui-1 bg-linear-to-r",

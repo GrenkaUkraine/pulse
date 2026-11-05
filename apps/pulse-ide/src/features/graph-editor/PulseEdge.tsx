@@ -15,7 +15,11 @@ export default function PulseEdge({
 			id={props.id}
 			path={path}
 			interactionWidth={props.interactionWidth}
-			style={{ ...style, stroke: "white", strokeWidth: 1.5 }}
+			style={{
+				...style,
+				stroke: "var(--pulse-edge-stroke, white)",
+				strokeWidth: 1.5,
+			}}
 		/>
 	);
 }
