@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Graph {
     id: Uuid,
     name: NonEmptyString,

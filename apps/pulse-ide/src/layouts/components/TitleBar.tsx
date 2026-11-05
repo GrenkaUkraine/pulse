@@ -9,12 +9,22 @@ import {
 import { HeartIcon } from "@heroicons/react/24/solid";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import LogoPulse from "../../assets/LogoPulse.svg?react";
+import { useGraphStore } from "../../features/graph-editor/graph.store";
 import { ToolbarButton } from "../../shared/ui/ToolbarButton";
 import { ToolbarGroup } from "../../shared/ui/ToolbarGroup";
 import WindowControls from "./WindowControls.tsx";
 
 export default function TitleBar() {
 	const appWindow = getCurrentWindow();
+	const canUndo = useGraphStore((state) => state.canUndo);
+	const canRedo = useGraphStore((state) => state.canRedo);
+	const busy = useGraphStore(
+		(state) =>
+			state.status !== "ready" ||
+			state.pending > 0 ||
+			state.nodes.some((node) => node.dragging),
+	);
+	const mutate = useGraphStore((state) => state.mutate);
 
 	return (
 		<div className="flex items-center">
@@ -25,8 +35,20 @@ export default function TitleBar() {
 					className="size-8 shrink-0"
 				/>
 				<ToolbarButton icon={Bars4Icon} aria-label="Menu" />
-				<ToolbarButton icon={ArrowLeftIcon} aria-label="Undo" />
-				<ToolbarButton icon={ArrowRightIcon} aria-label="Redo" />
+				<ToolbarButton
+					icon={ArrowLeftIcon}
+					aria-label="Undo"
+					title="Undo (Ctrl+Z)"
+					disabled={!canUndo || busy}
+					onClick={() => void mutate({ type: "undo" })}
+				/>
+				<ToolbarButton
+					icon={ArrowRightIcon}
+					aria-label="Redo"
+					title="Redo (Ctrl+Shift+Z)"
+					disabled={!canRedo || busy}
+					onClick={() => void mutate({ type: "redo" })}
+				/>
 			</ToolbarGroup>
 
 			<div data-tauri-drag-region className="flex-1 self-stretch" />

@@ -1,7 +1,7 @@
 use crate::error::Error;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(try_from = "String")]
 pub(crate) struct NonEmptyString(String);
 

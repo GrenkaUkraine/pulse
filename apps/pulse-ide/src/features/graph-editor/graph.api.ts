@@ -12,9 +12,13 @@ export interface GraphConnection {
 export interface GraphSnapshot {
 	nodes: NodeInstance[];
 	edges: GraphConnection[];
+	canUndo: boolean;
+	canRedo: boolean;
 }
 
 export type GraphAction =
+	| { type: "undo" }
+	| { type: "redo" }
 	| { type: "createNode"; typeId: string; position: NodeInstance["position"] }
 	| { type: "moveNodes"; nodes: Pick<NodeInstance, "id" | "position">[] }
 	| { type: "setValue"; nodeId: string; portId: string; value: PinValue }

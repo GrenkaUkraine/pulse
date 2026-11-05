@@ -20,6 +20,9 @@ import type { PulseNodeType } from "./PulseNode";
 interface GraphState {
 	nodes: PulseNodeType[];
 	edges: Edge[];
+	canUndo: boolean;
+	canRedo: boolean;
+	pending: number;
 	status: "idle" | "loading" | "ready" | "error";
 	loadGraph: () => Promise<void>;
 	mutate: (action: GraphAction) => Promise<boolean>;
@@ -73,12 +76,21 @@ function applySnapshot(snapshot: GraphSnapshot) {
 		edges = previewConnection(edges, edge, nodes);
 	}
 	latestSnapshot = snapshot;
-	useGraphStore.setState({ nodes, edges, status: "ready" });
+	useGraphStore.setState({
+		nodes,
+		edges,
+		canUndo: snapshot.canUndo,
+		canRedo: snapshot.canRedo,
+		status: "ready",
+	});
 }
 
 export const useGraphStore = create<GraphState>((set, get) => ({
 	nodes: [],
 	edges: [],
+	canUndo: false,
+	canRedo: false,
+	pending: 0,
 	status: "idle",
 	async loadGraph() {
 		if (get().status === "loading" || get().status === "ready") return;
@@ -102,6 +114,12 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 	},
 	mutate(action) {
 		if (get().status !== "ready") return Promise.resolve(false);
+		if (
+			(action.type === "undo" || action.type === "redo") &&
+			(get().pending > 0 || get().nodes.some((node) => node.dragging))
+		)
+			return Promise.resolve(false);
+		set({ pending: get().pending + 1 });
 		const sequence = ++moveSequence;
 		queuedRequests += 1;
 		if (action.type === "connect") {
@@ -173,6 +191,7 @@ export const useGraphStore = create<GraphState>((set, get) => ({
 				return false;
 			} finally {
 				queuedRequests -= 1;
+				set({ pending: get().pending - 1 });
 				if (queuedRequests === 0) confirmedIds.clear();
 			}
 		});

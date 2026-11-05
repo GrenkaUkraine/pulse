@@ -34,6 +34,42 @@ export default function GraphEditor() {
 		void loadGraph();
 	}, [loadGraph]);
 
+	useEffect(() => {
+		function onKeyDown(event: KeyboardEvent) {
+			if (
+				event.defaultPrevented ||
+				event.repeat ||
+				event.altKey ||
+				(!event.ctrlKey && !event.metaKey)
+			)
+				return;
+			if (
+				event.target instanceof Element &&
+				event.target.closest(
+					"input, textarea, select, [contenteditable]:not([contenteditable='false'])",
+				)
+			)
+				return;
+			const redo =
+				(event.code === "KeyZ" && event.shiftKey) ||
+				(event.code === "KeyY" && !event.shiftKey);
+			if (event.code !== "KeyZ" && !redo) return;
+			const state = useGraphStore.getState();
+			if (
+				state.status !== "ready" ||
+				state.pending > 0 ||
+				state.nodes.some((node) => node.dragging)
+			)
+				return;
+			event.preventDefault();
+			if (redo ? state.canRedo : state.canUndo) {
+				void state.mutate({ type: redo ? "redo" : "undo" });
+			}
+		}
+		window.addEventListener("keydown", onKeyDown, true);
+		return () => window.removeEventListener("keydown", onKeyDown, true);
+	}, []);
+
 	const canConnect = useCallback(
 		(connection: Connection | Edge) => {
 			if (connection.source === connection.target) return false;

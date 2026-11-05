@@ -1,20 +1,30 @@
 use pulse_core::{graph::Graph, node::NodePosition, value::Value};
 use pulse_nodes::catalog;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Mutex};
+use std::{
+    collections::{HashMap, VecDeque},
+    sync::Mutex,
+};
 use tauri::State;
 use uuid::Uuid;
 
-pub(crate) struct GraphState(Mutex<Graph>);
+pub(crate) struct GraphState(Mutex<EditorState>);
+
+struct EditorState {
+    graph: Graph,
+    undo: VecDeque<Graph>,
+    redo: Vec<Graph>,
+}
 
 impl Default for GraphState {
     fn default() -> Self {
-        Self(Mutex::new(
-            Graph::new("Untitled").expect("valid graph name"),
-        ))
+        Self(Mutex::new(EditorState {
+            graph: Graph::new("Untitled").expect("valid graph name"),
+            undo: VecDeque::new(),
+            redo: Vec::new(),
+        }))
     }
 }
-
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct NodeInstance {
@@ -35,13 +45,17 @@ pub(crate) struct GraphConnection {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct GraphSnapshot {
     nodes: Vec<NodeInstance>,
     edges: Vec<GraphConnection>,
+    can_undo: bool,
+    can_redo: bool,
 }
 
-impl From<&Graph> for GraphSnapshot {
-    fn from(graph: &Graph) -> Self {
+impl From<&EditorState> for GraphSnapshot {
+    fn from(state: &EditorState) -> Self {
+        let graph = &state.graph;
         let mut nodes: Vec<_> = graph
             .nodes()
             .map(|node| NodeInstance {
@@ -65,7 +79,12 @@ impl From<&Graph> for GraphSnapshot {
                 target_handle: edge.to_port().to_owned(),
             })
             .collect();
-        Self { nodes, edges }
+        Self {
+            nodes,
+            edges,
+            can_undo: !state.undo.is_empty(),
+            can_redo: !state.redo.is_empty(),
+        }
     }
 }
 
@@ -82,6 +101,8 @@ pub(crate) struct NodeMove {
     rename_all_fields = "camelCase"
 )]
 pub(crate) enum GraphAction {
+    Undo,
+    Redo,
     CreateNode {
         type_id: String,
         position: NodePosition,
@@ -131,11 +152,44 @@ pub(crate) fn apply_graph_action(
     action: GraphAction,
     state: State<'_, GraphState>,
 ) -> Result<GraphSnapshot, String> {
-    let mut graph = state
+    let mut editor = state
         .0
         .lock()
         .map_err(|_| "Graph state is unavailable".to_owned())?;
     match action {
+        GraphAction::Undo => {
+            if let Some(previous) = editor.undo.pop_back() {
+                let current = std::mem::replace(&mut editor.graph, previous);
+                editor.redo.push(current);
+            }
+        }
+        GraphAction::Redo => {
+            if let Some(next) = editor.redo.pop() {
+                let current = std::mem::replace(&mut editor.graph, next);
+                editor.undo.push_back(current);
+            }
+        }
+        action => {
+            let previous = editor.graph.clone();
+            if let Err(error) = apply_edit(&mut editor.graph, action) {
+                editor.graph = previous;
+                return Err(error);
+            }
+            if editor.graph != previous {
+                editor.undo.push_back(previous);
+                if editor.undo.len() > 100 {
+                    editor.undo.pop_front();
+                }
+                editor.redo.clear();
+            }
+        }
+    }
+    Ok(GraphSnapshot::from(&*editor))
+}
+
+fn apply_edit(graph: &mut Graph, action: GraphAction) -> Result<(), String> {
+    match action {
+        GraphAction::Undo | GraphAction::Redo => return Err("Invalid graph edit".to_owned()),
         GraphAction::CreateNode { type_id, position } => {
             validate_position(&position)?;
             let node = catalog::create(&type_id, position).map_err(|error| error.to_string())?;
@@ -185,5 +239,5 @@ pub(crate) fn apply_graph_action(
             graph.disconnect(edge_id);
         }
     }
-    Ok(GraphSnapshot::from(&*graph))
+    Ok(())
 }

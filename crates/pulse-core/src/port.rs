@@ -2,19 +2,19 @@ use crate::error::Error;
 use crate::non_empty_string::NonEmptyString;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 pub enum PortKind {
     Execution,
     Data,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 pub enum PortDirection {
     Input,
     Output,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq, Serialize)]
 pub enum DataType {
     Bool,
     Int,
@@ -23,7 +23,7 @@ pub enum DataType {
     Pin,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Port {
     id: NonEmptyString,
     kind: PortKind,
