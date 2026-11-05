@@ -18,12 +18,6 @@ export default function TitleBar() {
 	const appWindow = getCurrentWindow();
 	const canUndo = useGraphStore((state) => state.canUndo);
 	const canRedo = useGraphStore((state) => state.canRedo);
-	const busy = useGraphStore(
-		(state) =>
-			state.status !== "ready" ||
-			state.pending > 0 ||
-			state.nodes.some((node) => node.dragging),
-	);
 	const mutate = useGraphStore((state) => state.mutate);
 
 	return (
@@ -39,14 +33,14 @@ export default function TitleBar() {
 					icon={ArrowLeftIcon}
 					aria-label="Undo"
 					title="Undo (Ctrl+Z)"
-					disabled={!canUndo || busy}
+					disabled={!canUndo}
 					onClick={() => void mutate({ type: "undo" })}
 				/>
 				<ToolbarButton
 					icon={ArrowRightIcon}
 					aria-label="Redo"
 					title="Redo (Ctrl+Shift+Z)"
-					disabled={!canRedo || busy}
+					disabled={!canRedo}
 					onClick={() => void mutate({ type: "redo" })}
 				/>
 			</ToolbarGroup>
