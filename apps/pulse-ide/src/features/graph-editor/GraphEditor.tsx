@@ -1,6 +1,8 @@
 import {
+	addEdge,
 	Background,
 	BackgroundVariant,
+	type Connection,
 	Controls,
 	type Edge,
 	type NodeTypes,
@@ -8,11 +10,17 @@ import {
 	useEdgesState,
 	useNodesState,
 } from "@xyflow/react";
+import { useCallback } from "react";
 import PanelContainer from "../../shared/ui/PanelContainer";
+import PulseConnectionLine from "./PulseConnectionLine";
 
+import PulseEdge from "./PulseEdge";
 import PulseNode, { type PulseNodeType } from "./PulseNode";
 
 const nodeTypes = { pulse: PulseNode } satisfies NodeTypes;
+
+const edgeTypes = { pulse: PulseEdge };
+const defaultEdgeOptions = { type: "pulse" };
 
 const initialNodes: PulseNodeType[] = [
 	{
@@ -50,7 +58,14 @@ const initialEdges: Edge[] = [
 
 export default function GraphEditor() {
 	const [nodes, , onNodesChange] = useNodesState(initialNodes);
-	const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+	const onConnect = useCallback(
+		(connection: Connection) => {
+			if (connection.source === connection.target) return;
+			setEdges((current) => addEdge(connection, current));
+		},
+		[setEdges],
+	);
 
 	return (
 		<PanelContainer
@@ -63,6 +78,13 @@ export default function GraphEditor() {
 				nodes={nodes}
 				nodeTypes={nodeTypes}
 				edges={edges}
+				edgeTypes={edgeTypes}
+				defaultEdgeOptions={defaultEdgeOptions}
+				connectionLineComponent={PulseConnectionLine}
+				onConnect={onConnect}
+				isValidConnection={(connection) =>
+					connection.source !== connection.target
+				}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				colorMode="dark"
