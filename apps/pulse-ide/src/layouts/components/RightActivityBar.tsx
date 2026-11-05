@@ -3,7 +3,15 @@ import { AdjustmentsHorizontalIcon as AdjustmentsHorizontalIconFilled } from "@h
 import { ToolbarButton } from "../../shared/ui/ToolbarButton.tsx";
 import { ToolbarGroup } from "../../shared/ui/ToolbarGroup.tsx";
 
-export default function RightActivityBar() {
+interface RightActivityBarProps {
+	inspectorOpen: boolean;
+	onToggleInspector: () => void;
+}
+
+export default function RightActivityBar({
+	inspectorOpen,
+	onToggleInspector,
+}: RightActivityBarProps) {
 	return (
 		<div className="flex flex-col justify-between">
 			<ToolbarGroup direction="vertical" className="py-0">
@@ -11,7 +19,8 @@ export default function RightActivityBar() {
 					icon={AdjustmentsHorizontalIcon}
 					activeIcon={AdjustmentsHorizontalIconFilled}
 					aria-label="Inspector"
-					active
+					active={inspectorOpen}
+					onClick={onToggleInspector}
 				/>
 			</ToolbarGroup>
 			<ToolbarGroup direction="vertical" className="py-0"></ToolbarGroup>

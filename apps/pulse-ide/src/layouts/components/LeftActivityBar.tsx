@@ -6,7 +6,19 @@ import {
 import { ToolbarButton } from "../../shared/ui/ToolbarButton.tsx";
 import { ToolbarGroup } from "../../shared/ui/ToolbarGroup.tsx";
 
-export default function LeftActivityBar() {
+interface LeftActivityBarProps {
+	nodesOpen: boolean;
+	outputOpen: boolean;
+	onToggleNodes: () => void;
+	onToggleOutput: () => void;
+}
+
+export default function LeftActivityBar({
+	nodesOpen,
+	outputOpen,
+	onToggleNodes,
+	onToggleOutput,
+}: LeftActivityBarProps) {
 	return (
 		<div className="flex flex-col justify-between">
 			<ToolbarGroup direction="vertical" className="py-0">
@@ -14,7 +26,8 @@ export default function LeftActivityBar() {
 					icon={WalletIcon}
 					activeIcon={WalletIconFilled}
 					aria-label="Nodes"
-					active
+					active={nodesOpen}
+					onClick={onToggleNodes}
 				/>
 			</ToolbarGroup>
 			<ToolbarGroup direction="vertical" className="py-0">
@@ -22,7 +35,8 @@ export default function LeftActivityBar() {
 					icon={WrenchScrewdriverIcon}
 					activeIcon={WrenchScrewdriverIconFilled}
 					aria-label="Output"
-					active
+					active={outputOpen}
+					onClick={onToggleOutput}
 				/>
 			</ToolbarGroup>
 		</div>
