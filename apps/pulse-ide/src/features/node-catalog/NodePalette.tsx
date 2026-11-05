@@ -1,6 +1,5 @@
 import {
 	ChevronRightIcon,
-	CubeIcon,
 	MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { ScrollArea, TextField } from "@radix-ui/themes";
@@ -9,6 +8,7 @@ import { cn } from "../../shared/lib/cn";
 import PanelContainer from "../../shared/ui/PanelContainer";
 import type { NodeDefinition } from "../graph-editor/node.types";
 import { useCatalogStore } from "./catalog.store";
+import PaletteNodeItem from "./PaletteNodeItem";
 
 export default function NodePalette() {
 	const catalog = useCatalogStore((state) => state.definitions);
@@ -159,21 +159,5 @@ function PaletteCategory({
 				</div>
 			)}
 		</section>
-	);
-}
-
-interface PaletteNodeItemProps {
-	node: NodeDefinition;
-}
-
-function PaletteNodeItem({ node }: PaletteNodeItemProps) {
-	return (
-		<div className="group flex items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 hover:bg-ui-gray-4 hover:cursor-grab select-none">
-			<CubeIcon aria-hidden="true" className="size-4 shrink-0 text-ui-muted" />
-			<div className="min-w-0">
-				<div className="truncate text-xs text-ui-foreground">{node.title}</div>
-				<div className="truncate text-[10px] text-ui-muted">{node.id}</div>
-			</div>
-		</div>
 	);
 }
