@@ -1,13 +1,24 @@
 import { Text } from "@radix-ui/themes";
-import { type Node, type NodeProps, useNodeConnections } from "@xyflow/react";
+import {
+	type Node,
+	type NodeProps,
+	useNodeConnections,
+	useReactFlow,
+	useUpdateNodeInternals,
+} from "@xyflow/react";
+import { useEffect } from "react";
 import { cn } from "../../shared/lib/cn";
+import type { PinOption } from "./controls/PinControl";
 import NodePin from "./NodePin";
+import NodePinControl, { type PinValue } from "./NodePinControl";
 import type { NodeKind, NodePinDefinition } from "./node.types";
 
 export interface PulseNodeData extends Record<string, unknown> {
 	title: string;
 	kind: NodeKind;
 	pins: NodePinDefinition[];
+	values?: Record<string, PinValue>;
+	pinOptions?: PinOption[];
 }
 
 const headerColors = {
@@ -21,10 +32,21 @@ const headerColors = {
 export type PulseNodeType = Node<PulseNodeData, "pulse">;
 
 export default function PulseNode({
+	id,
 	data,
 	isConnectable,
 }: NodeProps<PulseNodeType>) {
 	const connections = useNodeConnections();
+	const { updateNodeData } = useReactFlow<PulseNodeType>();
+	const updateNodeInternals = useUpdateNodeInternals();
+	const connectionSignature = connections
+		.map((connection) => connection.edgeId)
+		.sort()
+		.join(",");
+	useEffect(() => {
+		void connectionSignature;
+		updateNodeInternals(id);
+	}, [id, connectionSignature, updateNodeInternals]);
 
 	return (
 		<div className="flex flex-col gap-4 border border-ui-border rounded-ui-2 bg-ui-background/80 overflow-hidden">
@@ -58,7 +80,18 @@ export default function PulseNode({
 											? connection.targetHandle === pin.id
 											: connection.sourceHandle === pin.id,
 									)}
-								/>
+								>
+									<NodePinControl
+										pin={pin}
+										value={data.values?.[pin.id]}
+										pinOptions={data.pinOptions ?? []}
+										onChange={(value) =>
+											updateNodeData(id, (node) => ({
+												values: { ...node.data.values, [pin.id]: value },
+											}))
+										}
+									/>
+								</NodePin>
 							))}
 					</div>
 				))}
