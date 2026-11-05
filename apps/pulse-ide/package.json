@@ -1,37 +1,39 @@
 {
-  "name": "pulse-ide",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri",
-    "format": "biome format --write .",
-    "lint": "biome lint .",
-    "check": "biome check ."
-  },
-  "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "@radix-ui/themes": "^3.3.0",
-    "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2",
-    "@xyflow/react": "^12.12.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-resizable-panels": "^4.18.0"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "2.6.5",
-    "@tailwindcss/vite": "^4.3.4",
-    "@tauri-apps/cli": "^2",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^6.0.2",
-    "tailwindcss": "^4.3.4",
-    "typescript": "~6.0.3",
-    "vite": "^8.0.16",
-    "vite-plugin-svgr": "^5.2.0"
-  }
+	"name": "pulse-ide",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"tauri": "tauri",
+		"format": "biome format --write .",
+		"lint": "biome lint .",
+		"check": "biome check ."
+	},
+	"dependencies": {
+		"@heroicons/react": "^2.2.0",
+		"@radix-ui/themes": "^3.3.0",
+		"@tauri-apps/api": "^2",
+		"@tauri-apps/plugin-opener": "^2",
+		"@xyflow/react": "^12.12.1",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"react-resizable-panels": "^4.18.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.6.5",
+		"@tailwindcss/vite": "^4.3.4",
+		"@tauri-apps/cli": "^2",
+		"@types/react": "^19.1.8",
+		"@types/react-dom": "^19.1.6",
+		"@vitejs/plugin-react": "^6.0.2",
+		"tailwindcss": "^4.3.4",
+		"typescript": "~6.0.3",
+		"vite": "^8.0.16",
+		"vite-plugin-svgr": "^5.2.0"
+	},
+	"license": "SEE LICENSE IN ../../LICENSE",
+	"homepage": "https://github.com/GrenkaUkraine/pulse/"
 }

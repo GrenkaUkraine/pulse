@@ -8,3 +8,5 @@ members = [
 
 [workspace.package]
 edition = "2024"
+license-file = "LICENSE"
+readme = "README.md"
