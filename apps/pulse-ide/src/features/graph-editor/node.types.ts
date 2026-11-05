@@ -4,6 +4,7 @@ export type PinType = "execution" | DataPinType;
 interface PinBase {
 	id: string;
 	title?: string;
+	defaultValue?: boolean | number | string;
 }
 
 export type NodePinDefinition =
@@ -28,3 +29,10 @@ export type NodePinDefinition =
 	  });
 
 export type NodeKind = "event" | "action" | "flow" | "value" | "logic";
+
+export interface NodeDefinition {
+	id: string;
+	title: string;
+	category: { id: string; title: string };
+	pins: NodePinDefinition[];
+}

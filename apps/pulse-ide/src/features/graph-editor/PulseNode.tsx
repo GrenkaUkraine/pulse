@@ -11,12 +11,12 @@ import { cn } from "../../shared/lib/cn";
 import type { PinOption } from "./controls/PinControl";
 import NodePin from "./NodePin";
 import NodePinControl, { type PinValue } from "./NodePinControl";
-import type { NodeKind, NodePinDefinition } from "./node.types";
+import type { NodeDefinition, NodeKind } from "./node.types";
 
-export interface PulseNodeData extends Record<string, unknown> {
-	title: string;
+export interface PulseNodeData
+	extends Record<string, unknown>,
+		Pick<NodeDefinition, "title" | "pins"> {
 	kind: NodeKind;
-	pins: NodePinDefinition[];
 	values?: Record<string, PinValue>;
 	pinOptions?: PinOption[];
 }

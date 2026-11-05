@@ -1,114 +1,54 @@
 import {
-	ArrowPathIcon,
-	ArrowRightStartOnRectangleIcon,
-	ArrowsRightLeftIcon,
-	BoltIcon,
 	ChevronRightIcon,
-	ClockIcon,
-	CodeBracketIcon,
+	CubeIcon,
 	MagnifyingGlassIcon,
-	NumberedListIcon,
-	VariableIcon,
 } from "@heroicons/react/24/outline";
 import { ScrollArea, TextField } from "@radix-ui/themes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "../../shared/lib/cn";
 import PanelContainer from "../../shared/ui/PanelContainer";
-
-const categories = [
-	{
-		title: "Flow",
-		nodes: [
-			{
-				id: "flow.setup",
-				title: "On Setup",
-				description: "Run once on startup",
-				icon: BoltIcon,
-				color: "text-pin-boolean",
-			},
-			{
-				id: "flow.loop",
-				title: "On Loop",
-				description: "Repeat continuously",
-				icon: ArrowPathIcon,
-				color: "text-pin-boolean",
-			},
-			{
-				id: "flow.branch",
-				title: "Branch",
-				description: "Choose a path",
-				icon: ArrowsRightLeftIcon,
-				color: "text-orange-400",
-			},
-			{
-				id: "flow.delay",
-				title: "Delay",
-				description: "Pause execution",
-				icon: ClockIcon,
-				color: "text-pin-int",
-			},
-		],
-	},
-	{
-		title: "GPIO",
-		nodes: [
-			{
-				id: "gpio.digital_write",
-				title: "Digital Write",
-				description: "Set a digital output",
-				icon: ArrowRightStartOnRectangleIcon,
-				color: "text-pin-int",
-			},
-			{
-				id: "gpio.digital_read",
-				title: "Digital Read",
-				description: "Read a digital input",
-				icon: ArrowRightStartOnRectangleIcon,
-				color: "text-pin-int",
-			},
-		],
-	},
-	{
-		title: "Values",
-		nodes: [
-			{
-				id: "value.bool",
-				title: "Boolean",
-				description: "True or false",
-				icon: VariableIcon,
-				color: "text-green-400",
-			},
-			{
-				id: "value.int",
-				title: "Integer",
-				description: "A whole number",
-				icon: NumberedListIcon,
-				color: "text-green-400",
-			},
-		],
-	},
-	{
-		title: "Logic",
-		nodes: [
-			{
-				id: "logic.not",
-				title: "NOT",
-				description: "Invert a boolean",
-				icon: CodeBracketIcon,
-				color: "text-pin-pin",
-			},
-			{
-				id: "logic.equal_int",
-				title: "Equal (Integer)",
-				description: "Compare two integers",
-				icon: CodeBracketIcon,
-				color: "text-pin-pin",
-			},
-		],
-	},
-];
+import type { NodeDefinition } from "../graph-editor/node.types";
+import { getNodeCatalog } from "./catalog.api";
 
 export default function NodePalette() {
+	const [catalog, setCatalog] = useState<NodeDefinition[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [attempt, setAttempt] = useState(0);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: attempt intentionally reloads the catalog when Retry is clicked.
+	useEffect(() => {
+		let cancelled = false;
+		setLoading(true);
+		setError(null);
+		getNodeCatalog()
+			.then((entries) => {
+				if (!cancelled) setCatalog(entries);
+			})
+			.catch((reason: unknown) => {
+				if (!cancelled) setError(String(reason));
+			})
+			.finally(() => {
+				if (!cancelled) setLoading(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [attempt]);
+
+	const categories: PaletteCategoryDefinition[] = [];
+	for (const node of catalog) {
+		let category = categories.find((item) => item.id === node.category.id);
+		if (!category) {
+			category = {
+				id: node.category.id,
+				title: node.category.title,
+				nodes: [],
+			};
+			categories.push(category);
+		}
+		category.nodes.push(node);
+	}
 	const [query, setQuery] = useState("");
 	const [collapsed, setCollapsed] = useState<string[]>([]);
 	const search = query.trim().toLowerCase();
@@ -155,15 +95,35 @@ export default function NodePalette() {
 				scrollbars="vertical"
 				className="min-h-0 flex-1 pr-ui-4"
 			>
-				{filtered.map((category) => (
-					<PaletteCategory
-						key={category.title}
-						category={category}
-						expanded={search !== "" || !collapsed.includes(category.title)}
-						onToggle={() => toggleCategory(category.title)}
-					/>
-				))}
-				{count === 0 && (
+				{loading && (
+					<p className="py-ui-3 text-xs text-ui-muted" role="status">
+						Loading nodes...
+					</p>
+				)}
+				{error && (
+					<div className="py-ui-3 text-xs" role="alert">
+						<p>Could not load the node catalog.</p>
+						<p className="mt-ui-1 break-words text-ui-muted">{error}</p>
+						<button
+							type="button"
+							className="mt-ui-2 text-ui-accent"
+							onClick={() => setAttempt((current) => current + 1)}
+						>
+							Retry
+						</button>
+					</div>
+				)}
+				{!loading &&
+					!error &&
+					filtered.map((category) => (
+						<PaletteCategory
+							key={category.id}
+							category={category}
+							expanded={search !== "" || !collapsed.includes(category.id)}
+							onToggle={() => toggleCategory(category.id)}
+						/>
+					))}
+				{!loading && !error && count === 0 && (
 					<p className="py-ui-3 text-center text-xs text-ui-muted">
 						No nodes found
 					</p>
@@ -177,8 +137,11 @@ export default function NodePalette() {
 	);
 }
 
-type PaletteCategoryDefinition = (typeof categories)[number];
-type PaletteNodeDefinition = PaletteCategoryDefinition["nodes"][number];
+interface PaletteCategoryDefinition {
+	id: string;
+	title: string;
+	nodes: NodeDefinition[];
+}
 
 interface PaletteCategoryProps {
 	category: PaletteCategoryDefinition;
@@ -220,24 +183,16 @@ function PaletteCategory({
 }
 
 interface PaletteNodeItemProps {
-	node: PaletteNodeDefinition;
+	node: NodeDefinition;
 }
 
 function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 	return (
-		<div
-			title={node.id}
-			className="group flex items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 hover:bg-ui-gray-4 hover:cursor-grab select-none"
-		>
-			<node.icon
-				aria-hidden="true"
-				className={cn("size-4 shrink-0", node.color)}
-			/>
+		<div className="group flex items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 hover:bg-ui-gray-4 hover:cursor-grab select-none">
+			<CubeIcon aria-hidden="true" className="size-4 shrink-0 text-ui-muted" />
 			<div className="min-w-0">
 				<div className="truncate text-xs text-ui-foreground">{node.title}</div>
-				<div className="truncate text-[10px] text-ui-muted">
-					{node.description}
-				</div>
+				<div className="truncate text-[10px] text-ui-muted">{node.id}</div>
 			</div>
 		</div>
 	);
