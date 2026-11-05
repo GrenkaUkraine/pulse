@@ -7,3 +7,5 @@ readme.workspace = true
 
 [dependencies]
 pulse-core = { version = "0.1.0", path = "../pulse-core" }
+
+serde = { version = "1.0.229", features = ["derive"] }

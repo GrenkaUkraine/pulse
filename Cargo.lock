@@ -2646,6 +2646,8 @@ dependencies = [
 name = "pulse-ide"
 version = "0.1.0"
 dependencies = [
+ "pulse-core",
+ "pulse-nodes",
  "serde",
  "serde_json",
  "tauri",
@@ -2658,6 +2660,7 @@ name = "pulse-nodes"
 version = "0.1.0"
 dependencies = [
  "pulse-core",
+ "serde",
 ]
 
 [[package]]

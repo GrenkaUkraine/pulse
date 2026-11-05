@@ -3,8 +3,9 @@ use pulse_core::{
     node::{Node, NodePosition},
     port::{DataType, Port, PortDirection, PortKind},
 };
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct PortDefinition {
     pub id: &'static str,
     pub kind: PortKind,
@@ -13,7 +14,7 @@ pub struct PortDefinition {
     pub default_value: Option<DefaultValue>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct NodeDefinition {
     pub category: NodeCategory,
     pub id: &'static str,
@@ -21,7 +22,7 @@ pub struct NodeDefinition {
     pub ports: Vec<PortDefinition>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize)]
 pub enum NodeCategory {
     Flow,
     Gpio,
@@ -65,7 +66,8 @@ impl NodeDefinition {
 }
 
 /// Initial value for a data input or a constant node parameter.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(untagged)]
 pub enum DefaultValue {
     Bool(bool),
     Int(i64),
