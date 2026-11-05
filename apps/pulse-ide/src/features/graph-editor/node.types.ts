@@ -1,31 +1,29 @@
-type DataPinType = "boolean" | "int" | "float" | "string" | "pin";
+export type DataPinType = "boolean" | "int" | "float" | "string";
 export type PinType = "execution" | DataPinType;
+export type PinControlKind =
+	| "checkbox"
+	| "integer"
+	| "decimal"
+	| "text"
+	| "pin";
+export type PinValue = boolean | number | string;
 
 interface PinBase {
 	id: string;
 	title?: string;
-	defaultValue?: boolean | number | string;
+	direction: "input" | "output";
+	maxConnections?: number | null;
 }
 
 export type NodePinDefinition =
 	| (PinBase & {
-			direction: "output";
 			dataType: "execution";
 	  })
 	| (PinBase & {
-			direction: "input";
-			maxConnections?: number;
-			dataType: "execution";
-	  })
-	| (PinBase & {
-			direction: "input";
 			dataType: DataPinType;
+			defaultValue?: PinValue;
+			control?: PinControlKind;
 			showControl?: boolean;
-			maxConnections?: number;
-	  })
-	| (PinBase & {
-			direction: "output";
-			dataType: DataPinType;
 	  });
 
 export type NodeKind = "event" | "action" | "flow" | "value" | "logic";
@@ -33,6 +31,8 @@ export type NodeKind = "event" | "action" | "flow" | "value" | "logic";
 export interface NodeDefinition {
 	id: string;
 	title: string;
+	description: string;
+	kind: NodeKind;
 	category: { id: string; title: string };
 	pins: NodePinDefinition[];
 }

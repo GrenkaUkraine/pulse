@@ -15,7 +15,6 @@ const pinColors = {
 	int: "text-pin-int",
 	float: "text-pin-float",
 	string: "text-pin-string",
-	pin: "text-pin-pin",
 } satisfies Record<PinType, string>;
 
 interface NodePinProps {
@@ -39,7 +38,7 @@ export default function NodePin({
 	const Icon = connected ? FilledIcon : OutlineIcon;
 
 	const showControl =
-		isInput && !isExecution && pin.showControl === true && !connected;
+		!isExecution && (pin.showControl ?? isInput) && (!isInput || !connected);
 
 	return (
 		<div
@@ -48,7 +47,14 @@ export default function NodePin({
 				!isInput && "flex-row-reverse",
 			)}
 		>
-			<div className={cn("relative size-4 shrink-0", pinColors[pin.dataType])}>
+			<div
+				className={cn(
+					"relative size-4 shrink-0",
+					pin.dataType !== "execution" && pin.control === "pin"
+						? "text-pin-pin"
+						: pinColors[pin.dataType],
+				)}
+			>
 				<Icon
 					aria-hidden="true"
 					className="pointer-events-none block size-full"

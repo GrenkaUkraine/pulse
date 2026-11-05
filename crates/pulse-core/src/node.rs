@@ -1,17 +1,19 @@
-use crate::non_empty_string::NonEmptyString;
 use crate::error::Error;
+use crate::non_empty_string::NonEmptyString;
 use crate::port::Port;
+use crate::value::Value;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(try_from = "NodeData")]
 pub struct Node {
     id: Uuid,
     node_type: NonEmptyString,
     position: NodePosition,
-    #[serde(deserialize_with = "deserialize_ports")]
     ports: HashMap<String, Port>,
+    values: HashMap<String, Value>,
     #[serde(skip)]
     ports_locked: bool,
 }
@@ -24,6 +26,7 @@ impl Node {
             position,
             ports: HashMap::new(),
             ports_locked: false,
+            values: HashMap::new(),
         })
     }
 
@@ -64,8 +67,27 @@ impl Node {
         self.ports.len()
     }
 
-    pub fn ports(&self) -> impl Iterator<Item=&Port> {
+    pub fn ports(&self) -> impl Iterator<Item = &Port> {
         self.ports.values()
+    }
+
+    pub fn values(&self) -> &HashMap<String, Value> {
+        &self.values
+    }
+
+    pub fn set_value(&mut self, port_id: &str, value: Value) -> Result<(), Error> {
+        let port = self.ports.get(port_id).ok_or_else(|| Error::PortNotFound {
+            node_id: self.id,
+            port_id: port_id.to_owned(),
+        })?;
+        if !port
+            .data_type()
+            .is_some_and(|data_type| value.matches(data_type))
+        {
+            return Err(Error::InvalidPortDataType);
+        }
+        self.values.insert(port_id.to_owned(), value);
+        Ok(())
     }
 
     pub(crate) fn lock_ports(&mut self) {
@@ -91,4 +113,33 @@ where
     }
 
     Ok(ports)
+}
+
+#[derive(Deserialize)]
+struct NodeData {
+    id: Uuid,
+    node_type: NonEmptyString,
+    position: NodePosition,
+    #[serde(deserialize_with = "deserialize_ports")]
+    ports: HashMap<String, Port>,
+    values: HashMap<String, Value>,
+}
+
+impl TryFrom<NodeData> for Node {
+    type Error = Error;
+
+    fn try_from(data: NodeData) -> Result<Self, Error> {
+        let mut node = Self {
+            id: data.id,
+            node_type: data.node_type,
+            position: data.position,
+            ports: data.ports,
+            values: HashMap::new(),
+            ports_locked: false,
+        };
+        for (id, value) in data.values {
+            node.set_value(&id, value)?;
+        }
+        Ok(node)
+    }
 }

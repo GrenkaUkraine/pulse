@@ -2,9 +2,7 @@ import BooleanControl from "./controls/BooleanControl";
 import NumberControl from "./controls/NumberControl";
 import PinControl, { type PinOption } from "./controls/PinControl";
 import StringControl from "./controls/StringControl";
-import type { NodePinDefinition } from "./node.types";
-
-export type PinValue = boolean | number | string;
+import type { NodePinDefinition, PinValue } from "./node.types";
 
 interface NodePinControlProps {
 	pin: NodePinDefinition;
@@ -20,9 +18,28 @@ export default function NodePinControl({
 	onChange,
 }: NodePinControlProps) {
 	const label = pin.title ?? pin.id;
+	if (pin.dataType === "execution") return null;
+	if (pin.control === "pin") {
+		if (pinOptions.length === 0) {
+			return (
+				<NumberControl
+					label={label}
+					integer
+					value={typeof value === "number" ? value : 0}
+					onChange={onChange}
+				/>
+			);
+		}
+		return (
+			<PinControl
+				label={label}
+				value={typeof value === "number" ? value : undefined}
+				options={pinOptions}
+				onChange={onChange}
+			/>
+		);
+	}
 	switch (pin.dataType) {
-		case "execution":
-			return null;
 		case "boolean":
 			return (
 				<BooleanControl
@@ -46,15 +63,6 @@ export default function NodePinControl({
 				<StringControl
 					label={label}
 					value={typeof value === "string" ? value : ""}
-					onChange={onChange}
-				/>
-			);
-		case "pin":
-			return (
-				<PinControl
-					label={label}
-					value={typeof value === "number" ? value : undefined}
-					options={pinOptions}
 					onChange={onChange}
 				/>
 			);

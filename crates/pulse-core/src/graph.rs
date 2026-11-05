@@ -1,5 +1,5 @@
-use crate::non_empty_string::NonEmptyString;
 use crate::connection::Connection;
+use crate::non_empty_string::NonEmptyString;
 use crate::{
     error::Error,
     node::{Node, NodePosition},
@@ -14,6 +14,7 @@ pub struct Graph {
     name: NonEmptyString,
     nodes: HashMap<Uuid, Node>,
     connections: HashMap<Uuid, Connection>,
+    connection_order: Vec<Uuid>,
 }
 
 impl Graph {
@@ -23,6 +24,7 @@ impl Graph {
             name: NonEmptyString::new(name, "graph name")?,
             nodes: HashMap::new(),
             connections: HashMap::new(),
+            connection_order: Vec::new(),
         })
     }
 
@@ -50,6 +52,8 @@ impl Graph {
         self.connections.retain(|_, connection| {
             connection.from_node() != node_id && connection.to_node() != node_id
         });
+        self.connection_order
+            .retain(|id| self.connections.contains_key(id));
         self.nodes.remove(&node_id)
     }
 
@@ -62,7 +66,10 @@ impl Graph {
         node_id: Uuid,
         position: NodePosition,
     ) -> Result<(), Error> {
-        let node = self.nodes.get_mut(&node_id).ok_or(Error::NodeNotFound(node_id))?;
+        let node = self
+            .nodes
+            .get_mut(&node_id)
+            .ok_or(Error::NodeNotFound(node_id))?;
         node.set_position(position);
         Ok(())
     }
@@ -78,10 +85,11 @@ impl Graph {
         to_node: Uuid,
         to_port: &str,
     ) -> Result<Uuid, Error> {
-        self.validate_connection(from_node, from_port, to_node, to_port)?;
+        self.validate_connection(from_node, from_port, to_node, to_port, true)?;
         let connection = Connection::new(from_node, from_port, to_node, to_port);
         let connection_id = connection.id();
         self.connections.insert(connection_id, connection);
+        self.connection_order.push(connection_id);
         Ok(connection_id)
     }
 
@@ -91,9 +99,16 @@ impl Graph {
         from_port: &str,
         to_node: Uuid,
         to_port: &str,
+        check_capacity: bool,
     ) -> Result<(), Error> {
-        let source_node = self.nodes.get(&from_node).ok_or(Error::NodeNotFound(from_node))?;
-        let target_node = self.nodes.get(&to_node).ok_or(Error::NodeNotFound(to_node))?;
+        let source_node = self
+            .nodes
+            .get(&from_node)
+            .ok_or(Error::NodeNotFound(from_node))?;
+        let target_node = self
+            .nodes
+            .get(&to_node)
+            .ok_or(Error::NodeNotFound(to_node))?;
         let source_port = source_node
             .get_port(from_port)
             .ok_or_else(|| Error::PortNotFound {
@@ -131,24 +146,105 @@ impl Graph {
         }) {
             return Err(Error::DuplicateConnection);
         }
-        if self.connections.values().any(|connection| {
-            connection.to_node() == to_node && connection.to_port() == to_port
-        }) {
-            return Err(Error::InputPortAlreadyConnected);
-        }
-        if source_port.kind() == &crate::port::PortKind::Execution
-            && self.connections.values().any(|connection| {
+        let incoming = self
+            .connections
+            .values()
+            .filter(|connection| connection.to_node() == to_node && connection.to_port() == to_port)
+            .count();
+        let outgoing = self
+            .connections
+            .values()
+            .filter(|connection| {
                 connection.from_node() == from_node && connection.from_port() == from_port
             })
+            .count();
+        if target_port
+            .max_connections()
+            .is_some_and(|limit| limit == 0 || (check_capacity && incoming >= limit))
+        {
+            return Err(Error::InputPortAlreadyConnected);
+        }
+        if source_port
+            .max_connections()
+            .is_some_and(|limit| limit == 0 || (check_capacity && outgoing >= limit))
         {
             return Err(Error::ExecutionOutputAlreadyConnected);
         }
-
         Ok(())
+    }
+    pub fn connect_or_replace(
+        &mut self,
+        from_node: Uuid,
+        from_port: &str,
+        to_node: Uuid,
+        to_port: &str,
+    ) -> Result<Uuid, Error> {
+        if let Some(connection) = self.connections.values().find(|connection| {
+            connection.from_node() == from_node
+                && connection.from_port() == from_port
+                && connection.to_node() == to_node
+                && connection.to_port() == to_port
+        }) {
+            return Ok(connection.id());
+        }
+        self.validate_connection(from_node, from_port, to_node, to_port, false)?;
+        let input_limit = self.nodes[&to_node]
+            .get_port(to_port)
+            .unwrap()
+            .max_connections();
+        let output_limit = self.nodes[&from_node]
+            .get_port(from_port)
+            .unwrap()
+            .max_connections();
+        let incoming: Vec<_> = self
+            .connection_order
+            .iter()
+            .copied()
+            .filter(|id| {
+                let edge = &self.connections[id];
+                edge.to_node() == to_node && edge.to_port() == to_port
+            })
+            .collect();
+        let input_remove =
+            input_limit.map_or(0, |limit| (incoming.len() + 1).saturating_sub(limit));
+        let mut removed: std::collections::HashSet<_> =
+            incoming.into_iter().take(input_remove).collect();
+        let outgoing: Vec<_> = self
+            .connection_order
+            .iter()
+            .copied()
+            .filter(|id| {
+                let edge = &self.connections[id];
+                !removed.contains(id)
+                    && edge.from_node() == from_node
+                    && edge.from_port() == from_port
+            })
+            .collect();
+        let output_remove =
+            output_limit.map_or(0, |limit| (outgoing.len() + 1).saturating_sub(limit));
+        removed.extend(outgoing.into_iter().take(output_remove));
+        for id in removed {
+            self.disconnect(id);
+        }
+        self.connect(from_node, from_port, to_node, to_port)
+    }
+
+    pub fn set_node_value(
+        &mut self,
+        node_id: Uuid,
+        port_id: &str,
+        value: crate::value::Value,
+    ) -> Result<(), Error> {
+        self.nodes
+            .get_mut(&node_id)
+            .ok_or(Error::NodeNotFound(node_id))?
+            .set_value(port_id, value)
     }
 
     pub fn disconnect(&mut self, connection_id: Uuid) -> Option<Connection> {
-        self.connections.remove(&connection_id)
+        let removed = self.connections.remove(&connection_id);
+        self.connection_order.retain(|id| *id != connection_id);
+        removed
     }
 
     pub fn get_connection(&self, connection_id: Uuid) -> Option<&Connection> {
@@ -177,6 +273,7 @@ impl<'de> Deserialize<'de> for Graph {
             name: NonEmptyString,
             nodes: HashMap<Uuid, Node>,
             connections: HashMap<Uuid, Connection>,
+            connection_order: Vec<Uuid>,
         }
 
         let GraphData {
@@ -184,6 +281,7 @@ impl<'de> Deserialize<'de> for Graph {
             name,
             mut nodes,
             connections,
+            connection_order,
         } = GraphData::deserialize(deserializer)?;
 
         use serde::de::Error as _;
@@ -200,6 +298,7 @@ impl<'de> Deserialize<'de> for Graph {
             name,
             nodes,
             connections: HashMap::with_capacity(connections.len()),
+            connection_order: Vec::new(),
         };
 
         for (connection_id, connection) in connections {
@@ -212,11 +311,23 @@ impl<'de> Deserialize<'de> for Graph {
                     connection.from_port(),
                     connection.to_node(),
                     connection.to_port(),
+                    true,
                 )
                 .map_err(D::Error::custom)?;
             graph.connections.insert(connection_id, connection);
+            graph.connection_order.push(connection_id);
         }
 
+        let ids: std::collections::HashSet<_> = connection_order.iter().collect();
+        if ids.len() != connection_order.len()
+            || connection_order.len() != graph.connections.len()
+            || connection_order
+                .iter()
+                .any(|id| !graph.connections.contains_key(id))
+        {
+            return Err(D::Error::custom("invalid connection order"));
+        }
+        graph.connection_order = connection_order;
         Ok(graph)
     }
 }

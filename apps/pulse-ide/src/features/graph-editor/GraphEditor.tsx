@@ -13,6 +13,7 @@ import { useCallback, useState } from "react";
 import PanelContainer from "../../shared/ui/PanelContainer";
 import GraphControls from "./GraphControls.tsx";
 import GraphMiniMap from "./GraphMiniMap";
+import type { NodePinDefinition } from "./node.types";
 import PulseConnectionLine from "./PulseConnectionLine";
 import PulseEdge from "./PulseEdge";
 import PulseNode, { type PulseNodeType } from "./PulseNode";
@@ -26,29 +27,39 @@ export default function GraphEditor() {
 	const [miniMapOpen, setMiniMapOpen] = useState(true);
 	const [nodes, , onNodesChange] = useNodesState<PulseNodeType>([]);
 	const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-	const canConnect = useCallback(
+	const getConnectionPorts = useCallback(
 		(connection: Connection | Edge) => {
-			if (connection.source === connection.target) return false;
-			const target = nodes.find((node) => node.id === connection.target);
-			const pin = target?.data.pins.find(
-				(pin) => pin.id === connection.targetHandle,
-			);
-			if (pin?.direction !== "input") return false;
-			const limit = pin.maxConnections ?? 1;
-			return Number.isSafeInteger(limit) && limit > 0;
+			const source = nodes
+				.find((node) => node.id === connection.source)
+				?.data.pins.find((pin) => pin.id === connection.sourceHandle);
+			const target = nodes
+				.find((node) => node.id === connection.target)
+				?.data.pins.find((pin) => pin.id === connection.targetHandle);
+			return { source, target };
 		},
 		[nodes],
 	);
+
+	const canConnect = useCallback(
+		(connection: Connection | Edge) => {
+			if (connection.source === connection.target) return false;
+			const { source, target } = getConnectionPorts(connection);
+			return (
+				source?.direction === "output" &&
+				target?.direction === "input" &&
+				source.dataType === target.dataType &&
+				getPinLimit(source) > 0 &&
+				getPinLimit(target) > 0
+			);
+		},
+		[getConnectionPorts],
+	);
+
 	const onConnect = useCallback(
 		(connection: Connection) => {
 			if (!canConnect(connection)) return;
-			const target = nodes.find((node) => node.id === connection.target);
-			const pin = target?.data.pins.find(
-				(pin) => pin.id === connection.targetHandle,
-			);
-			if (pin?.direction !== "input") return;
-			const limit = pin.maxConnections ?? 1;
-
+			const { source, target } = getConnectionPorts(connection);
+			if (!source || !target) return;
 			setEdges((current) => {
 				const duplicate = current.some(
 					(edge) =>
@@ -64,18 +75,32 @@ export default function GraphEditor() {
 						edge.target === connection.target &&
 						edge.targetHandle === connection.targetHandle,
 				);
-				const removedIds = new Set(
-					incoming
-						.slice(0, Math.max(0, incoming.length - limit + 1))
-						.map((edge) => edge.id),
+				const removeIncoming = Math.max(
+					0,
+					incoming.length + 1 - getPinLimit(target),
 				);
+				const removed = new Set(
+					incoming.slice(0, removeIncoming).map((edge) => edge.id),
+				);
+				const outgoing = current.filter(
+					(edge) =>
+						!removed.has(edge.id) &&
+						edge.source === connection.source &&
+						edge.sourceHandle === connection.sourceHandle,
+				);
+				const removeOutgoing = Math.max(
+					0,
+					outgoing.length + 1 - getPinLimit(source),
+				);
+				for (const edge of outgoing.slice(0, removeOutgoing))
+					removed.add(edge.id);
 				return addEdge(
 					connection,
-					current.filter((edge) => !removedIds.has(edge.id)),
+					current.filter((edge) => !removed.has(edge.id)),
 				);
 			});
 		},
-		[canConnect, nodes, setEdges],
+		[canConnect, getConnectionPorts, setEdges],
 	);
 	return (
 		<PanelContainer
@@ -113,4 +138,13 @@ export default function GraphEditor() {
 			</ReactFlow>
 		</PanelContainer>
 	);
+}
+
+function getPinLimit(pin: NodePinDefinition): number {
+	if (pin.maxConnections === null) return Infinity;
+	const limit =
+		pin.maxConnections ??
+		(pin.direction === "input" || pin.dataType === "execution" ? 1 : Infinity);
+	if (limit === Infinity) return limit;
+	return Number.isSafeInteger(limit) && limit >= 0 ? limit : 0;
 }

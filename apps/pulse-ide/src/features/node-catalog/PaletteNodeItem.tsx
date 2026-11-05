@@ -1,7 +1,7 @@
 import { CubeIcon } from "@heroicons/react/24/outline";
 import { useReactFlow, useStoreApi } from "@xyflow/react";
-import type { PinValue } from "../graph-editor/NodePinControl";
-import type { NodeDefinition, NodeKind } from "../graph-editor/node.types";
+
+import type { NodeDefinition, PinValue } from "../graph-editor/node.types";
 import type { PulseNodeType } from "../graph-editor/PulseNode";
 
 interface PaletteNodeItemProps {
@@ -31,14 +31,10 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 			position.x += 32;
 			position.y += 32;
 		}
-		let kind: NodeKind = "action";
-		if (node.id === "flow.setup" || node.id === "flow.loop") kind = "event";
-		else if (node.id === "flow.branch") kind = "flow";
-		else if (node.category.id === "values") kind = "value";
-		else if (node.category.id === "logic") kind = "logic";
 		const values: Record<string, PinValue> = {};
 		for (const pin of node.pins) {
-			if (pin.defaultValue !== undefined) values[pin.id] = pin.defaultValue;
+			if (pin.dataType !== "execution" && pin.defaultValue !== undefined)
+				values[pin.id] = pin.defaultValue;
 		}
 		addNodes({
 			id: crypto.randomUUID(),
@@ -46,14 +42,9 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 			position,
 			data: {
 				title: node.title,
-				kind,
-				pins: node.pins.map((pin) => {
-					if (pin.dataType === "execution") return { ...pin };
-					const title = pin.title ?? pin.id.replace(/_/g, " ");
-					return pin.direction === "input"
-						? { ...pin, title, showControl: pin.showControl ?? true }
-						: { ...pin, title };
-				}),
+				kind: node.kind,
+				pins: node.pins.map((pin) => ({ ...pin })),
+				typeId: node.id,
 				values,
 			},
 		});
@@ -61,13 +52,16 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 	return (
 		<button
 			type="button"
+			title={node.description}
 			onClick={addNode}
 			className="group flex w-full items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 text-left hover:bg-ui-gray-4 cursor-pointer select-none"
 		>
 			<CubeIcon aria-hidden="true" className="size-4 shrink-0 text-ui-muted" />
 			<div className="min-w-0">
 				<div className="truncate text-xs text-ui-foreground">{node.title}</div>
-				<div className="truncate text-[10px] text-ui-muted">{node.id}</div>
+				<div className="truncate text-[10px] text-ui-muted">
+					{node.description}
+				</div>
 			</div>
 		</button>
 	);

@@ -10,13 +10,13 @@ import { useEffect } from "react";
 import { cn } from "../../shared/lib/cn";
 import type { PinOption } from "./controls/PinControl";
 import NodePin from "./NodePin";
-import NodePinControl, { type PinValue } from "./NodePinControl";
-import type { NodeDefinition, NodeKind } from "./node.types";
+import NodePinControl from "./NodePinControl";
+import type { NodeDefinition, NodeKind, PinValue } from "./node.types";
 
 export interface PulseNodeData
 	extends Record<string, unknown>,
-		Pick<NodeDefinition, "title" | "pins"> {
-	kind: NodeKind;
+		Pick<NodeDefinition, "title" | "pins" | "kind"> {
+	typeId: string;
 	values?: Record<string, PinValue>;
 	pinOptions?: PinOption[];
 }
@@ -58,7 +58,7 @@ export default function PulseNode({
 			>
 				<Text weight="medium">{data.title}</Text>
 			</div>
-			<div className="grid grid-cols-2 gap-ui-2 p-ui-2 pt-ui-1">
+			<div className="flex justify-between gap-ui-2 p-ui-2 pt-ui-1">
 				{(["input", "output"] as const).map((direction) => (
 					<div
 						key={direction}
@@ -77,8 +77,10 @@ export default function PulseNode({
 									isConnectable={isConnectable}
 									connected={connections.some((connection) =>
 										pin.direction === "input"
-											? connection.targetHandle === pin.id
-											: connection.sourceHandle === pin.id,
+											? connection.target === id &&
+												connection.targetHandle === pin.id
+											: connection.source === id &&
+												connection.sourceHandle === pin.id,
 									)}
 								>
 									<NodePinControl

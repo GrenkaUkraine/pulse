@@ -1,5 +1,5 @@
-use crate::non_empty_string::NonEmptyString;
 use crate::error::Error;
+use crate::non_empty_string::NonEmptyString;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, PartialEq, Eq, Serialize)]
@@ -28,6 +28,8 @@ pub struct Port {
     kind: PortKind,
     direction: PortDirection,
     data_type: Option<DataType>,
+    #[serde(default)]
+    max_connections: Option<usize>,
 }
 
 impl Port {
@@ -44,14 +46,32 @@ impl Port {
             _ => {}
         }
 
+        let max_connections = match (&direction, &kind) {
+            (PortDirection::Input, _) | (_, PortKind::Execution) => Some(1),
+            _ => None,
+        };
         Ok(Self {
             id: NonEmptyString::new(id, "port ID")?,
             kind,
             direction,
             data_type,
+            max_connections,
         })
     }
 
+    pub fn with_max_connections(mut self, limit: usize) -> Self {
+        self.max_connections = Some(limit);
+        self
+    }
+
+    pub fn with_connection_limit(mut self, limit: Option<usize>) -> Self {
+        self.max_connections = limit;
+        self
+    }
+
+    pub fn max_connections(&self) -> Option<usize> {
+        self.max_connections
+    }
     pub fn id(&self) -> &str {
         self.id.as_str()
     }
@@ -82,9 +102,23 @@ impl<'de> Deserialize<'de> for Port {
             kind: PortKind,
             direction: PortDirection,
             data_type: Option<DataType>,
+            #[serde(deserialize_with = "deserialize_limit")]
+            max_connections: Option<usize>,
         }
 
         let port = PortData::deserialize(deserializer)?;
-        Self::new(port.id, port.kind, port.direction, port.data_type).map_err(D::Error::custom)
+        let mut result = Self::new(port.id, port.kind, port.direction, port.data_type)
+            .map_err(D::Error::custom)?;
+        {
+            result.max_connections = port.max_connections;
+        }
+        Ok(result)
     }
+}
+
+fn deserialize_limit<'de, D>(deserializer: D) -> Result<Option<usize>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Option::<usize>::deserialize(deserializer)
 }

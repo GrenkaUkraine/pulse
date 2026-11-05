@@ -36,7 +36,7 @@ export default function NodePalette() {
 		.map((category) => ({
 			...category,
 			nodes: category.nodes.filter((node) =>
-				[category.title, node.title, node.id]
+				[category.title, node.title, node.description, node.id]
 					.join(" ")
 					.toLowerCase()
 					.includes(search),
