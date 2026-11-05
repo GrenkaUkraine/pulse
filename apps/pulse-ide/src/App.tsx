@@ -1,5 +1,6 @@
 import "./App.css";
 import LeftActivityBar from "./layouts/components/LeftActivityBar.tsx";
+import RightActivityBar from "./layouts/components/RightActivityBar.tsx";
 import StatusBar from "./layouts/components/StatusBar.tsx";
 import TitleBar from "./layouts/components/TitleBar.tsx";
 
@@ -9,6 +10,8 @@ export default function App() {
 			<TitleBar />
 			<div className="flex flex-1 items-stretch">
 				<LeftActivityBar />
+				<div className="flex flex-1"></div>
+				<RightActivityBar />
 			</div>
 			<StatusBar />
 		</main>
