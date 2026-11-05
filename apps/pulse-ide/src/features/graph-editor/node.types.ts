@@ -32,6 +32,7 @@ export interface NodeDefinition {
 	id: string;
 	title: string;
 	description: string;
+	icon: string;
 	kind: NodeKind;
 	category: { id: string; title: string };
 	pins: NodePinDefinition[];

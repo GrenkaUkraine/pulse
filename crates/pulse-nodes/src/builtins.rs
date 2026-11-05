@@ -7,6 +7,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
     [
         NodeDefinition {
             id: "flow.setup",
+            icon: "bolt",
             kind: NodeKind::Event,
             display_name: "On Setup",
             description: "Run once when the board starts.",
@@ -15,6 +16,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "flow.loop",
+            icon: "arrow-path",
             kind: NodeKind::Event,
             display_name: "On Loop",
             description: "Repeat this execution chain continuously.",
@@ -23,6 +25,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "flow.branch",
+            icon: "arrows-right-left",
             kind: NodeKind::Flow,
             display_name: "Branch",
             description: "Choose an execution path based on a boolean condition.",
@@ -36,6 +39,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "flow.delay",
+            icon: "clock",
             kind: NodeKind::Action,
             display_name: "Delay",
             description: "Pause execution for the specified number of milliseconds.",
@@ -48,6 +52,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "gpio.digital_write",
+            icon: "arrow-up-tray",
             kind: NodeKind::Action,
             display_name: "Digital Write",
             description: "Set a digital pin to HIGH or LOW.",
@@ -61,6 +66,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "gpio.digital_read",
+            icon: "arrow-down-tray",
             kind: NodeKind::Action,
             display_name: "Digital Read",
             description: "Read the current digital level of a pin.",
@@ -69,6 +75,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "value.bool",
+            icon: "hashtag",
             kind: NodeKind::Value,
             display_name: "Boolean",
             description: "Provide a constant true or false value.",
@@ -77,6 +84,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "value.int",
+            icon: "hashtag",
             kind: NodeKind::Value,
             display_name: "Integer",
             description: "Provide a constant whole number.",
@@ -85,6 +93,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "logic.not",
+            icon: "no-symbol",
             kind: NodeKind::Logic,
             display_name: "NOT",
             description: "Invert a boolean value.",
@@ -93,6 +102,7 @@ pub(crate) fn definitions() -> impl Iterator<Item = NodeDefinition> {
         },
         NodeDefinition {
             id: "logic.equal_int",
+            icon: "equals",
             kind: NodeKind::Logic,
             display_name: "Equal (Integer)",
             description: "Check whether two integers are equal.",

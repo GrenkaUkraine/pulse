@@ -47,6 +47,7 @@ pub struct NodeDefinition {
     pub id: &'static str,
     pub display_name: &'static str,
     pub description: &'static str,
+    pub icon: &'static str,
     pub ports: Vec<PortDefinition>,
 }
 

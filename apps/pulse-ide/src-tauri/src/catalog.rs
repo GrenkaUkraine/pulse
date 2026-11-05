@@ -10,6 +10,7 @@ pub(crate) struct CatalogEntry {
     id: &'static str,
     title: &'static str,
     description: &'static str,
+    icon: &'static str,
     category: CatalogCategory,
     pins: Vec<CatalogPin>,
     kind: NodeKind,
@@ -72,6 +73,7 @@ pub(crate) fn get_node_catalog() -> Vec<CatalogEntry> {
             id: definition.id,
             title: definition.display_name,
             description: definition.description,
+            icon: definition.icon,
             kind: definition.kind,
             category: CatalogCategory {
                 id: definition.category.id(),

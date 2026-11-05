@@ -7,6 +7,7 @@ import {
 	useUpdateNodeInternals,
 } from "@xyflow/react";
 import { useEffect } from "react";
+import { getNodeIcon, nodeIconColors } from "../../shared/icons/node-icons";
 import { cn } from "../../shared/lib/cn";
 import type { PinOption } from "./controls/PinControl";
 import NodePin from "./NodePin";
@@ -15,7 +16,7 @@ import type { NodeDefinition, NodeKind, PinValue } from "./node.types";
 
 export interface PulseNodeData
 	extends Record<string, unknown>,
-		Pick<NodeDefinition, "title" | "pins" | "kind"> {
+		Pick<NodeDefinition, "title" | "pins" | "kind" | "icon"> {
 	typeId: string;
 	values?: Record<string, PinValue>;
 	pinOptions?: PinOption[];
@@ -37,6 +38,7 @@ export default function PulseNode({
 	isConnectable,
 }: NodeProps<PulseNodeType>) {
 	const connections = useNodeConnections();
+	const Icon = getNodeIcon(data.icon);
 	const { updateNodeData } = useReactFlow<PulseNodeType>();
 	const updateNodeInternals = useUpdateNodeInternals();
 	const connectionSignature = connections
@@ -52,10 +54,14 @@ export default function PulseNode({
 		<div className="flex flex-col gap-4 border border-ui-border rounded-ui-2 bg-ui-background/80 overflow-hidden">
 			<div
 				className={cn(
-					"px-ui-2 py-ui-1 bg-linear-to-r",
+					"flex items-center gap-ui-2 px-ui-2 py-ui-1 bg-linear-to-r",
 					headerColors[data.kind],
 				)}
 			>
+				<Icon
+					aria-hidden="true"
+					className={cn("size-4 shrink-0", nodeIconColors[data.kind])}
+				/>
 				<Text weight="medium">{data.title}</Text>
 			</div>
 			<div className="flex justify-between gap-ui-2 p-ui-2 pt-ui-1">

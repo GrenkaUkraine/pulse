@@ -1,5 +1,6 @@
-import { CubeIcon } from "@heroicons/react/24/outline";
 import { useReactFlow, useStoreApi } from "@xyflow/react";
+import { getNodeIcon, nodeIconColors } from "../../shared/icons/node-icons";
+import { cn } from "../../shared/lib/cn";
 
 import type { NodeDefinition, PinValue } from "../graph-editor/node.types";
 import type { PulseNodeType } from "../graph-editor/PulseNode";
@@ -11,6 +12,7 @@ interface PaletteNodeItemProps {
 export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 	const { addNodes, getNodes, getViewport } = useReactFlow<PulseNodeType>();
 	const store = useStoreApi();
+	const Icon = getNodeIcon(node.icon);
 
 	function addNode() {
 		const { width, height } = store.getState();
@@ -42,6 +44,7 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 			position,
 			data: {
 				title: node.title,
+				icon: node.icon,
 				kind: node.kind,
 				pins: node.pins.map((pin) => ({ ...pin })),
 				typeId: node.id,
@@ -56,7 +59,10 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 			onClick={addNode}
 			className="group flex w-full items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 text-left hover:bg-ui-gray-4 cursor-pointer select-none"
 		>
-			<CubeIcon aria-hidden="true" className="size-4 shrink-0 text-ui-muted" />
+			<Icon
+				aria-hidden="true"
+				className={cn("size-4 shrink-0", nodeIconColors[node.kind])}
+			/>
 			<div className="min-w-0">
 				<div className="truncate text-xs text-ui-foreground">{node.title}</div>
 				<div className="truncate text-[10px] text-ui-muted">
