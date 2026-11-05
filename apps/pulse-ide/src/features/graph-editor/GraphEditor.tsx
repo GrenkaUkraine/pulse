@@ -29,6 +29,7 @@ const initialNodes: PulseNodeType[] = [
 		position: { x: 80, y: 100 },
 		data: {
 			title: "On Setup",
+			kind: "event",
 			pins: [{ id: "exec", direction: "output", dataType: "execution" }],
 		},
 	},
@@ -38,6 +39,7 @@ const initialNodes: PulseNodeType[] = [
 		position: { x: 350, y: 100 },
 		data: {
 			title: "Delay",
+			kind: "action",
 			pins: [
 				{ id: "exec_in", direction: "input", dataType: "execution" },
 				{ id: "exec_out", direction: "output", dataType: "execution" },

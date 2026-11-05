@@ -20,3 +20,5 @@ export type NodePinDefinition =
 			direction: "output";
 			dataType: DataPinType;
 	  });
+
+export type NodeKind = "event" | "action" | "flow" | "value" | "logic";

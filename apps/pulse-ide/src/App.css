@@ -64,3 +64,16 @@
 	--color-pin-string: var(--pink-10);
 	--color-pin-pin: var(--violet-10);
 }
+
+@theme inline {
+	--color-node-event-from: var(--red-a5);
+	--color-node-event-to: var(--red-a1);
+	--color-node-action-from: var(--blue-a5);
+	--color-node-action-to: var(--blue-a1);
+	--color-node-flow-from: var(--orange-a5);
+	--color-node-flow-to: var(--orange-a1);
+	--color-node-value-from: var(--green-a5);
+	--color-node-value-to: var(--green-a1);
+	--color-node-logic-from: var(--violet-a5);
+	--color-node-logic-to: var(--violet-a1);
+}
