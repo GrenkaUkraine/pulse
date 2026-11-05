@@ -4,38 +4,18 @@ import {
 	MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { ScrollArea, TextField } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cn } from "../../shared/lib/cn";
 import PanelContainer from "../../shared/ui/PanelContainer";
 import type { NodeDefinition } from "../graph-editor/node.types";
-import { getNodeCatalog } from "./catalog.api";
+import { useCatalogStore } from "./catalog.store";
 
 export default function NodePalette() {
-	const [catalog, setCatalog] = useState<NodeDefinition[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-	const [attempt, setAttempt] = useState(0);
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: attempt intentionally reloads the catalog when Retry is clicked.
-	useEffect(() => {
-		let cancelled = false;
-		setLoading(true);
-		setError(null);
-		getNodeCatalog()
-			.then((entries) => {
-				if (!cancelled) setCatalog(entries);
-			})
-			.catch((reason: unknown) => {
-				if (!cancelled) setError(String(reason));
-			})
-			.finally(() => {
-				if (!cancelled) setLoading(false);
-			});
-		return () => {
-			cancelled = true;
-		};
-	}, [attempt]);
-
+	const catalog = useCatalogStore((state) => state.definitions);
+	const status = useCatalogStore((state) => state.status);
+	const error = useCatalogStore((state) => state.error);
+	const loadCatalog = useCatalogStore((state) => state.loadCatalog);
+	const loading = status === "idle" || status === "loading";
 	const categories: PaletteCategoryDefinition[] = [];
 	for (const node of catalog) {
 		let category = categories.find((item) => item.id === node.category.id);
@@ -107,7 +87,7 @@ export default function NodePalette() {
 						<button
 							type="button"
 							className="mt-ui-2 text-ui-accent"
-							onClick={() => setAttempt((current) => current + 1)}
+							onClick={() => void loadCatalog()}
 						>
 							Retry
 						</button>

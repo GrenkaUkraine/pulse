@@ -1,5 +1,6 @@
+import { useCatalogStore } from "./features/node-catalog/catalog.store";
 import "./App.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LeftActivityBar from "./layouts/components/LeftActivityBar.tsx";
 import RightActivityBar from "./layouts/components/RightActivityBar.tsx";
 import StatusBar from "./layouts/components/StatusBar.tsx";
@@ -7,6 +8,10 @@ import TitleBar from "./layouts/components/TitleBar.tsx";
 import WorkbenchLayout from "./layouts/WorkbenchLayout";
 
 export default function App() {
+	const loadCatalog = useCatalogStore((state) => state.loadCatalog);
+	useEffect(() => {
+		void loadCatalog();
+	}, [loadCatalog]);
 	const [nodesOpen, setNodesOpen] = useState(true);
 	const [inspectorOpen, setInspectorOpen] = useState(true);
 	const [outputOpen, setOutputOpen] = useState(true);
