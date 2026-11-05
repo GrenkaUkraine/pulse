@@ -5,23 +5,32 @@ import type { ComponentProps } from "react";
 interface ToolbarButtonProps
 	extends Omit<ComponentProps<typeof IconButton>, "children" | "asChild"> {
 	icon: typeof ArrowLeftIcon;
+	activeIcon?: typeof ArrowLeftIcon;
+	active?: boolean;
 	"aria-label": string;
 }
 
 export function ToolbarButton({
-	icon: Icon,
+	icon,
+	activeIcon,
+	active,
 	size = "2",
-	variant = "ghost",
+	variant,
 	color = "gray",
 	style,
 	...props
 }: ToolbarButtonProps) {
+	const Icon = active && activeIcon ? activeIcon : icon;
 	return (
 		<IconButton
 			size={size}
-			variant={variant}
+			variant={variant ?? (active ? "soft" : "ghost")}
 			color={color}
 			style={{ margin: 0, ...style }}
+			aria-pressed={active}
+			data-state={
+				active === undefined ? undefined : active ? "active" : "inactive"
+			}
 			{...props}
 		>
 			<Icon aria-hidden="true" className="size-5" />
