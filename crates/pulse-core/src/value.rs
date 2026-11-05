@@ -14,7 +14,7 @@ impl Value {
     pub fn matches(&self, data_type: &DataType) -> bool {
         match (self, data_type) {
             (Self::Bool(_), DataType::Bool)
-            | (Self::Int(_), DataType::Int)
+            | (Self::Int(_), DataType::Int | DataType::Pin)
             | (Self::String(_), DataType::String) => true,
             (Self::Float(value), DataType::Float) => value.is_finite(),
             (Self::Int(_), DataType::Float) => true,

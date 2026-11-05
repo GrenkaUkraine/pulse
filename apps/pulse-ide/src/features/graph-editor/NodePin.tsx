@@ -11,6 +11,7 @@ import type { NodePinDefinition, PinType } from "./node.types.ts";
 
 const pinColors = {
 	execution: "text-pin-execution",
+	pin: "text-pin-pin",
 	boolean: "text-pin-boolean",
 	int: "text-pin-int",
 	float: "text-pin-float",

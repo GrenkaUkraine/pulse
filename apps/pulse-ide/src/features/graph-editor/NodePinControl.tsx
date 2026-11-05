@@ -19,7 +19,7 @@ export default function NodePinControl({
 }: NodePinControlProps) {
 	const label = pin.title ?? pin.id;
 	if (pin.dataType === "execution") return null;
-	if (pin.control === "pin") {
+	if (pin.dataType === "pin" || pin.control === "pin") {
 		if (pinOptions.length === 0) {
 			return (
 				<NumberControl

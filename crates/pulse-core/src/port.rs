@@ -20,6 +20,7 @@ pub enum DataType {
     Int,
     Float,
     String,
+    Pin,
 }
 
 #[derive(Debug, Serialize)]

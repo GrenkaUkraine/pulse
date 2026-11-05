@@ -1,4 +1,4 @@
-export type DataPinType = "boolean" | "int" | "float" | "string";
+export type DataPinType = "boolean" | "int" | "float" | "string" | "pin";
 export type PinType = "execution" | DataPinType;
 export type PinControlKind =
 	| "checkbox"

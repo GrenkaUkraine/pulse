@@ -186,7 +186,11 @@ fn int_input(id: &'static str, default_value: Option<i64>) -> PortDefinition {
         max_connections: Some(1),
         kind: PortKind::Data,
         direction: PortDirection::Input,
-        data_type: Some(DataType::Int),
+        data_type: Some(if id == "pin" {
+            DataType::Pin
+        } else {
+            DataType::Int
+        }),
         default_value: default_value.map(DefaultValue::Int),
     }
 }
@@ -204,7 +208,11 @@ fn int_output(id: &'static str, default_value: Option<i64>) -> PortDefinition {
         max_connections: None,
         kind: PortKind::Data,
         direction: PortDirection::Output,
-        data_type: Some(DataType::Int),
+        data_type: Some(if id == "pin" {
+            DataType::Pin
+        } else {
+            DataType::Int
+        }),
         default_value: default_value.map(DefaultValue::Int),
     }
 }

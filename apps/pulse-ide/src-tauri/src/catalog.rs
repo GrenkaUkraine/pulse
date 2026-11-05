@@ -44,6 +44,7 @@ impl From<PortDefinition> for CatalogPin {
             (PortKind::Execution, _) => "execution",
             (PortKind::Data, Some(DataType::Bool)) => "boolean",
             (PortKind::Data, Some(DataType::Int)) => "int",
+            (PortKind::Data, Some(DataType::Pin)) => "pin",
             (PortKind::Data, Some(DataType::Float)) => "float",
             (PortKind::Data, Some(DataType::String)) => "string",
             (PortKind::Data, None) => {
