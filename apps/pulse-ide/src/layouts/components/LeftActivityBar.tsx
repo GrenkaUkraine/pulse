@@ -9,7 +9,7 @@ import { ToolbarGroup } from "../../shared/ui/ToolbarGroup.tsx";
 export default function LeftActivityBar() {
 	return (
 		<div className="flex flex-col justify-between">
-			<ToolbarGroup direction="vertical">
+			<ToolbarGroup direction="vertical" className="py-0">
 				<ToolbarButton
 					icon={WalletIcon}
 					activeIcon={WalletIconFilled}
@@ -17,7 +17,7 @@ export default function LeftActivityBar() {
 					active
 				/>
 			</ToolbarGroup>
-			<ToolbarGroup direction="vertical">
+			<ToolbarGroup direction="vertical" className="py-0">
 				<ToolbarButton
 					icon={WrenchScrewdriverIcon}
 					activeIcon={WrenchScrewdriverIconFilled}
