@@ -374,14 +374,57 @@ const initialEdges: Edge[] = [
 export default function GraphEditor() {
 	const [nodes, , onNodesChange] = useNodesState(initialNodes);
 	const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+	const canConnect = useCallback(
+		(connection: Connection | Edge) => {
+			if (connection.source === connection.target) return false;
+			const target = nodes.find((node) => node.id === connection.target);
+			const pin = target?.data.pins.find(
+				(pin) => pin.id === connection.targetHandle,
+			);
+			if (pin?.direction !== "input") return false;
+			const limit = pin.maxConnections ?? 1;
+			return Number.isSafeInteger(limit) && limit > 0;
+		},
+		[nodes],
+	);
 	const onConnect = useCallback(
 		(connection: Connection) => {
-			if (connection.source === connection.target) return;
-			setEdges((current) => addEdge(connection, current));
-		},
-		[setEdges],
-	);
+			if (!canConnect(connection)) return;
+			const target = nodes.find((node) => node.id === connection.target);
+			const pin = target?.data.pins.find(
+				(pin) => pin.id === connection.targetHandle,
+			);
+			if (pin?.direction !== "input") return;
+			const limit = pin.maxConnections ?? 1;
 
+			setEdges((current) => {
+				const duplicate = current.some(
+					(edge) =>
+						edge.source === connection.source &&
+						edge.sourceHandle === connection.sourceHandle &&
+						edge.target === connection.target &&
+						edge.targetHandle === connection.targetHandle,
+				);
+				if (duplicate) return current;
+
+				const incoming = current.filter(
+					(edge) =>
+						edge.target === connection.target &&
+						edge.targetHandle === connection.targetHandle,
+				);
+				const removedIds = new Set(
+					incoming
+						.slice(0, Math.max(0, incoming.length - limit + 1))
+						.map((edge) => edge.id),
+				);
+				return addEdge(
+					connection,
+					current.filter((edge) => !removedIds.has(edge.id)),
+				);
+			});
+		},
+		[canConnect, nodes, setEdges],
+	);
 	return (
 		<PanelContainer
 			hasPadding={false}
@@ -397,9 +440,7 @@ export default function GraphEditor() {
 				defaultEdgeOptions={defaultEdgeOptions}
 				connectionLineComponent={PulseConnectionLine}
 				onConnect={onConnect}
-				isValidConnection={(connection) =>
-					connection.source !== connection.target
-				}
+				isValidConnection={(connection) => canConnect(connection)}
 				onNodesChange={onNodesChange}
 				onEdgesChange={onEdgesChange}
 				colorMode="dark"

@@ -8,13 +8,19 @@ interface PinBase {
 
 export type NodePinDefinition =
 	| (PinBase & {
-			direction: "input" | "output";
+			direction: "output";
+			dataType: "execution";
+	  })
+	| (PinBase & {
+			direction: "input";
+			maxConnections?: number;
 			dataType: "execution";
 	  })
 	| (PinBase & {
 			direction: "input";
 			dataType: DataPinType;
 			showControl?: boolean;
+			maxConnections?: number;
 	  })
 	| (PinBase & {
 			direction: "output";
