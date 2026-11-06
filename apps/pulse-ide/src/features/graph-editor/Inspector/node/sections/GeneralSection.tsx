@@ -1,9 +1,9 @@
 import { Checkbox } from "@radix-ui/themes";
-import { useGraphStore } from "../../graph.store";
-import type { PulseNodeType } from "../../PulseNode";
-import InspectorSection from "../InspectorSection";
-import LabelInput from "../LabelInput";
-import PropertyRow from "../PropertyRow";
+import { useGraphStore } from "../../../graph.store";
+import type { PulseNodeType } from "../../../PulseNode";
+import InspectorSection from "../../shared/InspectorSection";
+import LabelInput from "../../shared/LabelInput";
+import PropertyRow from "../../shared/PropertyRow";
 
 interface GeneralSectionProps {
 	node: PulseNodeType;

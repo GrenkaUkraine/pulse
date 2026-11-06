@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import type { PinMode, ProjectSettings } from "../project/project.types";
 import type { NodeInstance, PinValue } from "./node.types";
 
 export interface GraphConnection {
@@ -10,6 +11,7 @@ export interface GraphConnection {
 }
 
 export interface GraphSnapshot {
+	project: ProjectSettings;
 	nodes: NodeInstance[];
 	edges: GraphConnection[];
 	canUndo: boolean;
@@ -17,6 +19,10 @@ export interface GraphSnapshot {
 }
 
 export type GraphAction =
+	| { type: "setPinName"; pin: number; name: string }
+	| { type: "setProjectName"; name: string }
+	| { type: "setProjectDescription"; description: string }
+	| { type: "setPinMode"; pin: number; mode: PinMode }
 	| { type: "setLabel"; nodeId: string; label: string }
 	| { type: "setEnabled"; nodeId: string; enabled: boolean }
 	| { type: "undo" }

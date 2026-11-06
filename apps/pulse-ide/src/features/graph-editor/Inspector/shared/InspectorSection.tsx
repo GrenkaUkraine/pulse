@@ -1,6 +1,6 @@
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { type ReactNode, useState } from "react";
-import { cn } from "../../../shared/lib/cn";
+import { cn } from "../../../../shared/lib/cn";
 
 interface InspectorSectionProps {
 	title: string;

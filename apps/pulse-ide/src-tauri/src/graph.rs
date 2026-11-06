@@ -1,3 +1,4 @@
+use pulse_core::project::PinMode;
 use pulse_core::{graph::Graph, node::NodePosition, value::Value};
 use pulse_nodes::catalog;
 use serde::{Deserialize, Serialize};
@@ -49,10 +50,29 @@ pub(crate) struct GraphConnection {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct GraphSnapshot {
+    project: ProjectSnapshot,
     nodes: Vec<NodeInstance>,
     edges: Vec<GraphConnection>,
     can_undo: bool,
     can_redo: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ProjectSnapshot {
+    name: String,
+    description: String,
+    board_id: &'static str,
+    board_name: &'static str,
+    pins: Vec<BoardPin>,
+}
+
+#[derive(Serialize)]
+pub(crate) struct BoardPin {
+    number: u8,
+    label: String,
+    mode: PinMode,
+    name: Option<String>,
 }
 
 impl From<&EditorState> for GraphSnapshot {
@@ -84,6 +104,26 @@ impl From<&EditorState> for GraphSnapshot {
             })
             .collect();
         Self {
+            project: ProjectSnapshot {
+                name: graph.name().to_owned(),
+                description: graph.project().description.clone(),
+                board_id: "arduino-uno",
+                board_name: "Arduino Uno",
+                pins: graph
+                    .project()
+                    .pins()
+                    .map(|(number, mode)| BoardPin {
+                        number,
+                        name: graph.project().pin_name(number).map(str::to_owned),
+                        mode,
+                        label: if number < 14 {
+                            format!("D{number}")
+                        } else {
+                            format!("A{}", number - 14)
+                        },
+                    })
+                    .collect(),
+            },
             nodes,
             edges,
             can_undo: !state.undo.is_empty(),
@@ -105,6 +145,20 @@ pub(crate) struct NodeMove {
     rename_all_fields = "camelCase"
 )]
 pub(crate) enum GraphAction {
+    SetPinName {
+        pin: u8,
+        name: String,
+    },
+    SetProjectName {
+        name: String,
+    },
+    SetProjectDescription {
+        description: String,
+    },
+    SetPinMode {
+        pin: u8,
+        mode: PinMode,
+    },
     SetLabel {
         node_id: Uuid,
         label: String,
@@ -216,6 +270,18 @@ fn apply_edit(graph: &mut Graph, action: GraphAction) -> Result<(), String> {
                 .set_node_enabled(node_id, enabled)
                 .map_err(|error| error.to_string())?;
         }
+        GraphAction::SetPinName { pin, name } => graph
+            .set_pin_name(pin, name)
+            .map_err(|error| error.to_string())?,
+        GraphAction::SetProjectName { name } => graph
+            .set_project_name(name)
+            .map_err(|error| error.to_string())?,
+        GraphAction::SetProjectDescription { description } => {
+            graph.set_project_description(description)
+        }
+        GraphAction::SetPinMode { pin, mode } => graph
+            .set_pin_mode(pin, mode)
+            .map_err(|error| error.to_string())?,
         GraphAction::Undo | GraphAction::Redo => return Err("Invalid graph edit".to_owned()),
         GraphAction::CreateNode { type_id, position } => {
             validate_position(&position)?;

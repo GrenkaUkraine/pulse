@@ -3,9 +3,9 @@ import {
 	ArrowRightStartOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import type { Edge } from "@xyflow/react";
-import type { PulseNodeType } from "../../PulseNode";
-import EmptyMessage from "../EmptyMessage";
-import InspectorSection from "../InspectorSection";
+import type { PulseNodeType } from "../../../PulseNode";
+import EmptyMessage from "../../shared/EmptyMessage";
+import InspectorSection from "../../shared/InspectorSection";
 
 interface ConnectionsSectionProps {
 	node: PulseNodeType;

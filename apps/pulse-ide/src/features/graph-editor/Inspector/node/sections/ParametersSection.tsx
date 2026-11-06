@@ -1,11 +1,11 @@
 import type { Edge } from "@xyflow/react";
-import { useGraphStore } from "../../graph.store";
-import NodePinControl from "../../NodePinControl";
-import type { NodePinDefinition } from "../../node.types";
-import type { PulseNodeType } from "../../PulseNode";
-import EmptyMessage from "../EmptyMessage";
-import InspectorSection from "../InspectorSection";
-import PropertyRow from "../PropertyRow";
+import { useGraphStore } from "../../../graph.store";
+import NodePinControl from "../../../NodePinControl";
+import type { NodePinDefinition } from "../../../node.types";
+import type { PulseNodeType } from "../../../PulseNode";
+import EmptyMessage from "../../shared/EmptyMessage";
+import InspectorSection from "../../shared/InspectorSection";
+import PropertyRow from "../../shared/PropertyRow";
 
 interface ParametersSectionProps {
 	node: PulseNodeType;

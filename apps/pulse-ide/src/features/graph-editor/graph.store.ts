@@ -7,6 +7,8 @@ import {
 } from "@xyflow/react";
 import { create } from "zustand";
 import { useCatalogStore } from "../node-catalog/catalog.store";
+import type { ProjectSettings } from "../project/project.types";
+import { pinModeLabels } from "../project/project.types";
 import { previewConnection } from "./connection-preview";
 import {
 	applyGraphAction,
@@ -18,6 +20,7 @@ import type { NodeInstance } from "./node.types";
 import type { PulseNodeType } from "./PulseNode";
 
 interface GraphState {
+	project: ProjectSettings | null;
 	nodes: PulseNodeType[];
 	edges: Edge[];
 	canUndo: boolean;
@@ -64,6 +67,14 @@ function applySnapshot(snapshot: GraphSnapshot) {
 				icon: definition.icon,
 				kind: definition.kind,
 				pins: definition.pins,
+				pinOptions: snapshot.project.pins
+					.filter((pin) => pin.mode !== "unused")
+					.map((pin) => ({
+						value: pin.number,
+						label: [pin.label, pin.name, pinModeLabels[pin.mode]]
+							.filter(Boolean)
+							.join(" · "),
+					})),
 				values: instance.values,
 			},
 		};
@@ -78,6 +89,7 @@ function applySnapshot(snapshot: GraphSnapshot) {
 	}
 	latestSnapshot = snapshot;
 	useGraphStore.setState({
+		project: snapshot.project,
 		nodes,
 		edges,
 		canUndo: snapshot.canUndo,
@@ -87,6 +99,7 @@ function applySnapshot(snapshot: GraphSnapshot) {
 }
 
 export const useGraphStore = create<GraphState>((set, get) => ({
+	project: null,
 	nodes: [],
 	edges: [],
 	canUndo: false,

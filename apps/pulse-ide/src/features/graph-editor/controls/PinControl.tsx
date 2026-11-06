@@ -18,13 +18,21 @@ export default function PinControl({
 	options,
 	onChange,
 }: PinControlProps) {
+	const selected = options.find((option) => option.value === value);
 	return (
 		<Select.Root
 			size="1"
-			value={value === undefined ? "" : String(value)}
+			value={selected ? String(selected.value) : ""}
 			onValueChange={(next) => onChange(Number(next))}
 		>
-			<Select.Trigger aria-label={label} placeholder="Select pin" />
+			<Select.Trigger
+				aria-label={label}
+				disabled={options.length === 0}
+				placeholder={options.length === 0 ? "No declared pins" : "Select pin"}
+			>
+				{selected?.label ??
+					(value === undefined ? undefined : `Pin ${value} · Unavailable`)}
+			</Select.Trigger>
 			<Select.Content>
 				{options.map((option) => (
 					<Select.Item key={option.value} value={String(option.value)}>

@@ -1,5 +1,6 @@
 use crate::connection::Connection;
 use crate::non_empty_string::NonEmptyString;
+use crate::project::{PinMode, ProjectSettings};
 use crate::{
     error::Error,
     node::{Node, NodePosition},
@@ -12,6 +13,7 @@ use uuid::Uuid;
 pub struct Graph {
     id: Uuid,
     name: NonEmptyString,
+    project: ProjectSettings,
     nodes: HashMap<Uuid, Node>,
     connections: HashMap<Uuid, Connection>,
     connection_order: Vec<Uuid>,
@@ -22,6 +24,7 @@ impl Graph {
         Ok(Self {
             id: Uuid::new_v4(),
             name: NonEmptyString::new(name, "graph name")?,
+            project: ProjectSettings::default(),
             nodes: HashMap::new(),
             connections: HashMap::new(),
             connection_order: Vec::new(),
@@ -38,6 +41,27 @@ impl Graph {
         node.lock_ports();
         self.nodes.insert(node_id, node);
         Ok(())
+    }
+
+    pub fn project(&self) -> &ProjectSettings {
+        &self.project
+    }
+
+    pub fn set_project_name(&mut self, name: String) -> Result<(), Error> {
+        self.name = NonEmptyString::new(name, "project name")?;
+        Ok(())
+    }
+
+    pub fn set_project_description(&mut self, description: String) {
+        self.project.description = description;
+    }
+
+    pub fn set_pin_name(&mut self, pin: u8, name: String) -> Result<(), Error> {
+        self.project.set_pin_name(pin, name)
+    }
+
+    pub fn set_pin_mode(&mut self, pin: u8, mode: PinMode) -> Result<(), Error> {
+        self.project.set_pin_mode(pin, mode)
     }
 
     pub fn name(&self) -> &str {
@@ -260,6 +284,22 @@ impl Graph {
         port_id: &str,
         value: crate::value::Value,
     ) -> Result<(), Error> {
+        let node = self
+            .nodes
+            .get(&node_id)
+            .ok_or(Error::NodeNotFound(node_id))?;
+        if node.get_port(port_id).and_then(|port| port.data_type())
+            == Some(&crate::port::DataType::Pin)
+        {
+            if let crate::value::Value::Int(number) = &value {
+                let mode = u8::try_from(*number)
+                    .ok()
+                    .and_then(|pin| self.project.pin_mode(pin));
+                if mode.is_none() || mode == Some(PinMode::Unused) {
+                    return Err(Error::UndeclaredPin(*number));
+                }
+            }
+        }
         self.nodes
             .get_mut(&node_id)
             .ok_or(Error::NodeNotFound(node_id))?
@@ -296,6 +336,7 @@ impl<'de> Deserialize<'de> for Graph {
         struct GraphData {
             id: Uuid,
             name: NonEmptyString,
+            project: ProjectSettings,
             nodes: HashMap<Uuid, Node>,
             connections: HashMap<Uuid, Connection>,
             connection_order: Vec<Uuid>,
@@ -304,6 +345,7 @@ impl<'de> Deserialize<'de> for Graph {
         let GraphData {
             id,
             name,
+            project,
             mut nodes,
             connections,
             connection_order,
@@ -311,6 +353,7 @@ impl<'de> Deserialize<'de> for Graph {
 
         use serde::de::Error as _;
 
+        project.validate().map_err(D::Error::custom)?;
         for (node_id, node) in &mut nodes {
             if *node_id != node.id() {
                 return Err(D::Error::custom("node key must match its ID"));
@@ -321,6 +364,7 @@ impl<'de> Deserialize<'de> for Graph {
         let mut graph = Self {
             id,
             name,
+            project,
             nodes,
             connections: HashMap::with_capacity(connections.len()),
             connection_order: Vec::new(),

@@ -20,16 +20,6 @@ export default function NodePinControl({
 	const label = pin.title ?? pin.id;
 	if (pin.dataType === "execution") return null;
 	if (pin.dataType === "pin" || pin.control === "pin") {
-		if (pinOptions.length === 0) {
-			return (
-				<NumberControl
-					label={label}
-					integer
-					value={typeof value === "number" ? value : 0}
-					onChange={onChange}
-				/>
-			);
-		}
 		return (
 			<PinControl
 				label={label}

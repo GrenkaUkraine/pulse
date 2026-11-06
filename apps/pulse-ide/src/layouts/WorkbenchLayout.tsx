@@ -1,7 +1,7 @@
 import { ReactFlowProvider } from "@xyflow/react";
 import { Group, Panel, Separator } from "react-resizable-panels";
 import GraphEditor from "../features/graph-editor/GraphEditor";
-import NodeInspector from "../features/graph-editor/Inspector/NodeInspector";
+import Inspector from "../features/graph-editor/Inspector/Inspector";
 import NodePalette from "../features/node-catalog/NodePalette";
 import OutputPanel from "../features/output/OutputPanel";
 import { cn } from "../shared/lib/cn";
@@ -47,7 +47,7 @@ export default function WorkbenchLayout({
 									minSize="160px"
 									maxSize="40%"
 								>
-									<NodeInspector />
+									<Inspector />
 								</Panel>
 							</>
 						)}

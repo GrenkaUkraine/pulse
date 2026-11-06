@@ -1,7 +1,7 @@
-import type { NodeDefinition } from "../../node.types";
-import type { PulseNodeType } from "../../PulseNode";
-import InspectorSection from "../InspectorSection";
-import PropertyRow from "../PropertyRow";
+import type { NodeDefinition } from "../../../node.types";
+import type { PulseNodeType } from "../../../PulseNode";
+import InspectorSection from "../../shared/InspectorSection";
+import PropertyRow from "../../shared/PropertyRow";
 
 interface AdvancedSectionProps {
 	node: PulseNodeType;

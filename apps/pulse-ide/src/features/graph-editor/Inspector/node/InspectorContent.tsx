@@ -1,8 +1,8 @@
 import { ScrollArea } from "@radix-ui/themes";
-import { useGraphStore } from "../graph.store";
-import type { NodeDefinition } from "../node.types";
-import type { PulseNodeType } from "../PulseNode";
-import EmptyMessage from "./EmptyMessage";
+import { useGraphStore } from "../../graph.store";
+import type { NodeDefinition } from "../../node.types";
+import type { PulseNodeType } from "../../PulseNode";
+import EmptyMessage from "../shared/EmptyMessage";
 import AdvancedSection from "./sections/AdvancedSection";
 import ConnectionsSection from "./sections/ConnectionsSection";
 import GeneralSection from "./sections/GeneralSection";
