@@ -59,7 +59,8 @@ function applySnapshot(snapshot: GraphSnapshot) {
 				(old?.dragging ? old.position : instance.position),
 			data: {
 				typeId: instance.typeId,
-				title: definition.title,
+				title: instance.label ?? definition.title,
+				enabled: instance.enabled,
 				icon: definition.icon,
 				kind: definition.kind,
 				pins: definition.pins,

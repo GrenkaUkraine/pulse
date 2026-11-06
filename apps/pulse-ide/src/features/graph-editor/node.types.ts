@@ -41,6 +41,8 @@ export interface NodeDefinition {
 export interface NodeInstance {
 	id: string;
 	typeId: string;
+	label: string | null;
+	enabled: boolean;
 	position: { x: number; y: number };
 	values: Record<string, PinValue>;
 }

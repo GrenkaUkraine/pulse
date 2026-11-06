@@ -239,6 +239,21 @@ impl Graph {
         self.connect(from_node, from_port, to_node, to_port)
     }
 
+    pub fn set_node_label(&mut self, node_id: Uuid, label: Option<String>) -> Result<(), Error> {
+        self.nodes
+            .get_mut(&node_id)
+            .ok_or(Error::NodeNotFound(node_id))?
+            .set_label(label)
+    }
+
+    pub fn set_node_enabled(&mut self, node_id: Uuid, enabled: bool) -> Result<(), Error> {
+        self.nodes
+            .get_mut(&node_id)
+            .ok_or(Error::NodeNotFound(node_id))?
+            .set_enabled(enabled);
+        Ok(())
+    }
+
     pub fn set_node_value(
         &mut self,
         node_id: Uuid,

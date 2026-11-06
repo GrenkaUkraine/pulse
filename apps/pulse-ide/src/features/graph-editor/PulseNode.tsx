@@ -18,6 +18,7 @@ export interface PulseNodeData
 	extends Record<string, unknown>,
 		Pick<NodeDefinition, "title" | "pins" | "kind" | "icon"> {
 	typeId: string;
+	enabled: boolean;
 	values?: Record<string, PinValue>;
 	pinOptions?: PinOption[];
 }
@@ -55,6 +56,7 @@ export default function PulseNode({
 		<div
 			className={cn(
 				"flex flex-col gap-4 border rounded-ui-2 bg-ui-background/80 overflow-hidden",
+				!data.enabled && "opacity-50",
 				selected ? "border-ui-accent" : "border-ui-border",
 			)}
 		>

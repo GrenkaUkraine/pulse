@@ -30,6 +30,8 @@ impl Default for GraphState {
 pub(crate) struct NodeInstance {
     id: Uuid,
     type_id: String,
+    label: Option<String>,
+    enabled: bool,
     position: NodePosition,
     values: HashMap<String, Value>,
 }
@@ -61,6 +63,8 @@ impl From<&EditorState> for GraphSnapshot {
             .map(|node| NodeInstance {
                 id: node.id(),
                 type_id: node.node_type().to_owned(),
+                label: node.label().map(str::to_owned),
+                enabled: node.enabled(),
                 position: NodePosition {
                     x: node.position().x,
                     y: node.position().y,
@@ -101,6 +105,14 @@ pub(crate) struct NodeMove {
     rename_all_fields = "camelCase"
 )]
 pub(crate) enum GraphAction {
+    SetLabel {
+        node_id: Uuid,
+        label: String,
+    },
+    SetEnabled {
+        node_id: Uuid,
+        enabled: bool,
+    },
     Undo,
     Redo,
     CreateNode {
@@ -189,6 +201,21 @@ pub(crate) fn apply_graph_action(
 
 fn apply_edit(graph: &mut Graph, action: GraphAction) -> Result<(), String> {
     match action {
+        GraphAction::SetLabel { node_id, label } => {
+            let label = if label.trim().is_empty() {
+                None
+            } else {
+                Some(label)
+            };
+            graph
+                .set_node_label(node_id, label)
+                .map_err(|error| error.to_string())?;
+        }
+        GraphAction::SetEnabled { node_id, enabled } => {
+            graph
+                .set_node_enabled(node_id, enabled)
+                .map_err(|error| error.to_string())?;
+        }
         GraphAction::Undo | GraphAction::Redo => return Err("Invalid graph edit".to_owned()),
         GraphAction::CreateNode { type_id, position } => {
             validate_position(&position)?;

@@ -8,9 +8,13 @@ import type { PulseNodeType } from "../graph-editor/PulseNode";
 
 interface PaletteNodeItemProps {
 	node: NodeDefinition;
+	interactive?: boolean;
 }
 
-export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
+export default function PaletteNodeItem({
+	node,
+	interactive = true,
+}: PaletteNodeItemProps) {
 	const { getNodes, getViewport } = useReactFlow<PulseNodeType>();
 	const store = useStoreApi();
 	const Icon = getNodeIcon(node.icon);
@@ -38,14 +42,8 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 		}
 		void mutate({ type: "createNode", typeId: node.id, position });
 	}
-	return (
-		<button
-			type="button"
-			title={node.description}
-			onClick={addNode}
-			disabled={!ready}
-			className="group flex w-full items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 text-left hover:bg-ui-gray-4 cursor-pointer select-none"
-		>
+	const content = (
+		<>
 			<Icon
 				aria-hidden="true"
 				className={cn("size-4 shrink-0", nodeIconColors[node.kind])}
@@ -56,6 +54,20 @@ export default function PaletteNodeItem({ node }: PaletteNodeItemProps) {
 					{node.description}
 				</div>
 			</div>
+		</>
+	);
+	const className =
+		"group flex w-full items-center gap-ui-2 rounded-ui-2 px-ui-2 py-ui-2 text-left select-none";
+	if (!interactive) return <div className={className}>{content}</div>;
+	return (
+		<button
+			type="button"
+			title={node.description}
+			onClick={addNode}
+			disabled={!ready}
+			className={cn(className, "hover:bg-ui-gray-4 cursor-pointer")}
+		>
+			{content}
 		</button>
 	);
 }

@@ -12,6 +12,8 @@ pub struct Node {
     id: Uuid,
     node_type: NonEmptyString,
     position: NodePosition,
+    label: Option<NonEmptyString>,
+    enabled: bool,
     ports: HashMap<String, Port>,
     values: HashMap<String, Value>,
     #[serde(skip)]
@@ -24,10 +26,31 @@ impl Node {
             id: Uuid::new_v4(),
             node_type: NonEmptyString::new(node_type, "node type")?,
             position,
+            label: None,
+            enabled: true,
             ports: HashMap::new(),
             ports_locked: false,
             values: HashMap::new(),
         })
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(NonEmptyString::as_str)
+    }
+
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+
+    pub fn set_label(&mut self, label: Option<String>) -> Result<(), Error> {
+        self.label = label
+            .map(|value| NonEmptyString::new(value, "node label"))
+            .transpose()?;
+        Ok(())
+    }
+
+    pub fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
     }
 
     pub fn set_position(&mut self, position: NodePosition) {
@@ -120,6 +143,8 @@ struct NodeData {
     id: Uuid,
     node_type: NonEmptyString,
     position: NodePosition,
+    label: Option<NonEmptyString>,
+    enabled: bool,
     #[serde(deserialize_with = "deserialize_ports")]
     ports: HashMap<String, Port>,
     values: HashMap<String, Value>,
@@ -133,6 +158,8 @@ impl TryFrom<NodeData> for Node {
             id: data.id,
             node_type: data.node_type,
             position: data.position,
+            label: data.label,
+            enabled: data.enabled,
             ports: data.ports,
             values: HashMap::new(),
             ports_locked: false,

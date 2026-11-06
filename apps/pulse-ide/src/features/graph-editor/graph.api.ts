@@ -17,6 +17,8 @@ export interface GraphSnapshot {
 }
 
 export type GraphAction =
+	| { type: "setLabel"; nodeId: string; label: string }
+	| { type: "setEnabled"; nodeId: string; enabled: boolean }
 	| { type: "undo" }
 	| { type: "redo" }
 	| { type: "createNode"; typeId: string; position: NodeInstance["position"] }
